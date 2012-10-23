@@ -22,6 +22,7 @@ import os
 import webapp2
 
 import auth_util
+import puzzle_util
 
 from models import *
 
@@ -36,7 +37,7 @@ class MainHandler(webapp2.RequestHandler):
 
   def get(self):
     if auth_util.auth_into_site(self) :
-      self.redirect('/success')
+      self.redirect('/puzzles')
     else:
       self.render()
 
@@ -53,13 +54,13 @@ class LoginHandler(webapp2.RequestHandler):
 
   def get(self):
     if auth_util.auth_into_site(self) :
-      self.redirect('/success')
+      self.redirect('/puzzles')
     else:
       self.render()
 
   def post(self):
     if auth_util.auth_into_site(self) :
-      self.redirect('/success')
+      self.redirect('/puzzles')
     else:
       username = self.request.get('username')
       password = self.request.get('password')
@@ -97,13 +98,13 @@ class RegisterHandler(webapp2.RequestHandler):
 
   def get(self):
     if auth_util.auth_into_site(self):
-      self.redirect('/success')
+      self.redirect('/puzzles')
     else:
       self.render()
 
   def post(self):
     if auth_util.auth_into_site(self):
-      self.redirect('/success')
+      self.redirect('/puzzles')
     else:      
       username = self.request.get('username')
       password = self.request.get('password')
@@ -143,19 +144,39 @@ class LogoutHandler(webapp2.RequestHandler):
     self.response.headers.add_header('Set-Cookie', 'auth=; Path=/')
     self.redirect('/')
 
-
-class SuccessHandler(webapp2.RequestHandler):
-  def render(self):
-    template = jinja_env.get_template('success.html')
-    self.response.out.write(template.render())
+class PuzzlesHandler(webapp2.RequestHandler):
+  def render(self, puzzles):
+    template = jinja_env.get_template('puzzles.html')
+    self.response.out.write(template.render(puzzles = puzzles))
 
   def get(self):
-    self.render()
+    puzzles = puzzle_util.get_puzzles()
+    self.render(puzzles)
+
+class PuzzleHandler(webapp2.RequestHandler):
+  def render(self, puzzle):
+    template = jinja_env.get_template('puzzle.html')
+    self.response.out.write(template.render(puzzle = puzzle))
+
+  def get(self, short_code):
+    puzzle = puzzle_util.get_puzzle_by_code(short_code)
+    self.render(puzzle)
+
+class TestHandler(webapp2.RequestHandler):
+  def get(self):
+    test = Puzzle(title = 'test',
+                  short_code = 'tst',
+                  answer = 'test',
+                  text = 'testetsetstetststetststtest')
+    test.put()
+    self.redirect('/')
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
                                ('/register', RegisterHandler),
                                ('/logout', LogoutHandler),
-                               ('/success', SuccessHandler)],
+                               ('/puzzles', PuzzlesHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
+                               ('/test', TestHandler) ],
                               debug=True)
