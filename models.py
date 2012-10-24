@@ -8,14 +8,6 @@ class User(db.Model):
 
   created = db.DateTimeProperty(auto_now_add = True)
 
-def get_puzzle_by_id(pid):
-  return Puzzle.get_by_id(pid)
-
-def get_puzzle_by_code(short_code):
-  query = db.Query(Puzzle)
-  query.filter('short_code =', short_code)
-  return query.get()
-
 class Puzzle(db.Model):
   title = db.StringProperty(required=True)
   short_code = db.StringProperty(required=True)
@@ -24,5 +16,9 @@ class Puzzle(db.Model):
 
   created = db.DateTimeProperty(auto_now_add = True)
 
-  def get_puzzles():
-    return list(db.Query(Puzzle))
+class UserPuzzleInfo(db.Model):
+  uid = db.IntegerProperty(required=True)
+  pid = db.IntegerProperty(required=True)
+
+  solved = db.BooleanProperty(required=True, default=False)
+  tries = db.IntegerProperty(required=True, default=0)
