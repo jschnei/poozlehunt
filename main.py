@@ -187,7 +187,7 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
     up_info.tries += 1
     
     if puzzle.answer == answer:
-	up_info.solved = True
+      up_info.solved = True
 
     up_info.put()
 
@@ -210,6 +210,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
                                ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitHandler),
+			                         ('/puzzles/([a-zA-Z0-9]+)/submit', 
+                                  PuzzleSubmitHandler),
                                ('/test', TestHandler) ],
                               debug=True)
