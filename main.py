@@ -160,28 +160,30 @@ class PuzzlesHandler(webapp2.RequestHandler):
     self.render(puzzles, completion)
 
 class PuzzleHandler(webapp2.RequestHandler):
-  def render(self, puzzle):
+  def render(self, puzzle, up_info):
     template = jinja_env.get_template('puzzle.html')
-    self.response.out.write(template.render(puzzle = puzzle))
+    self.response.out.write(template.render(puzzle = puzzle, up_info = up_info))
 
   def get(self, short_code):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
-    self.render(puzzle)
+    uid = auth_util.auth_into_site(self)
+    pid = puzzle.key().id()
+
+    up_info = puzzle_util.get_upinfo(uid, pid)
+
+    self.render(puzzle, up_info)
 
 class PuzzleSubmitHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/puzzles/' + short_code)
+
   def post(self, short_code):
     answer = self.request.get('answer')
     uid = auth_util.auth_into_site(self)
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
     pid = puzzle.key().id()
+
     up_info = puzzle_util.get_upinfo(uid, pid)
-    print >> sys.stderr, str(answer) + "," + str(uid) + "," + str(pid) + "," + str(up_info) + "," + puzzle.answer
-    
-    if up_info is None:
-	up_info = UserPuzzleInfo(uid = uid,
-				 pid = pid,
-				 solved = False,
-				 tries = 0)
     up_info.tries += 1
     
     if puzzle.answer == answer:
@@ -189,7 +191,7 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
 
     up_info.put()
 
-    self.redirect('/puzzles') #temporary!
+    self.redirect('/puzzles/' + short_code) #temporary!
     
 class TestHandler(webapp2.RequestHandler):
   def get(self):
