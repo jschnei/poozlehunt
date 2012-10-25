@@ -19,6 +19,7 @@ from google.appengine.ext import db
 
 import jinja2
 import os
+import sys
 import webapp2
 
 import auth_util
@@ -145,13 +146,18 @@ class LogoutHandler(webapp2.RequestHandler):
     self.redirect('/')
 
 class PuzzlesHandler(webapp2.RequestHandler):
-  def render(self, puzzles):
+  def render(self, puzzles, completion):
     template = jinja_env.get_template('puzzles.html')
-    self.response.out.write(template.render(puzzles = puzzles))
+    
+    puzzle_info = zip(puzzles, completion)
+    self.response.out.write(template.render(puzzle_info = puzzle_info))
 
   def get(self):
     puzzles = puzzle_util.get_puzzles()
-    self.render(puzzles)
+    uid = auth_util.auth_into_site(self)
+
+    completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+    self.render(puzzles, completion)
 
 class PuzzleHandler(webapp2.RequestHandler):
   def render(self, puzzle):
@@ -162,6 +168,29 @@ class PuzzleHandler(webapp2.RequestHandler):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
     self.render(puzzle)
 
+class PuzzleSubmitHandler(webapp2.RequestHandler):
+  def post(self, short_code):
+    answer = self.request.get('answer')
+    uid = auth_util.auth_into_site(self)
+    puzzle = puzzle_util.get_puzzle_by_code(short_code)
+    pid = puzzle.key().id()
+    up_info = puzzle_util.get_upinfo(uid, pid)
+    print >> sys.stderr, str(answer) + "," + str(uid) + "," + str(pid) + "," + str(up_info) + "," + puzzle.answer
+    
+    if up_info is None:
+	up_info = UserPuzzleInfo(uid = uid,
+				 pid = pid,
+				 solved = False,
+				 tries = 0)
+    up_info.tries += 1
+    
+    if puzzle.answer == answer:
+	up_info.solved = True
+
+    up_info.put()
+
+    self.redirect('/puzzles') #temporary!
+    
 class TestHandler(webapp2.RequestHandler):
   def get(self):
     test = Puzzle(title = 'test',
@@ -169,6 +198,7 @@ class TestHandler(webapp2.RequestHandler):
                   answer = 'test',
                   text = 'testetsetstetststetststtest')
     test.put()
+    
     self.redirect('/')
 
 app = webapp2.WSGIApplication([('/', MainHandler),
@@ -178,5 +208,6 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
                                ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
+			       ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitHandler),
                                ('/test', TestHandler) ],
                               debug=True)
