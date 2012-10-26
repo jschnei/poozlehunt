@@ -2,9 +2,7 @@
 {% block title %}  {{puzzle.title}}{% if up_info.solved %} (solved!) {% endif %}{% endblock %}
 {% block content %} 
     <div id = 'text'>
-      <p>
-        {{puzzle.text}}
-      </p>
+      <pre>{{puzzle.text}}</pre>
     </div>
     <div id = 'answer'>
       <br>

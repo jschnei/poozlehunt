@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Poozle Hunt!</title>
-    <link href="css/onecol.css" rel="stylesheet">
+    <link href="/css/onecol.css" rel="stylesheet">
   </head>
   <body>
     <div class = "container">
@@ -10,6 +10,21 @@
         <h1>
           Poozle Hunt
         </h1>
+      </div>
+      <div id="navigation">
+        {% if logged_in %}
+        <ul>
+          <li><a href="/puzzles"> Puzzles </a></li>
+          <li><a href="/puzzle_submit"> Submit a Puzzle </a></li>
+          <li><a href="/logout"> Logout </a></li>
+        </ul>
+        {% else %}
+        <ul>
+          <li><a href="/"> Main </a></li>
+          <li><a href="/login"> Login </a></li>
+          <li><a href="/register"> Register</a></li>
+        </ul>
+        {% endif %}
       </div>
       <div id="content">
         <h2>

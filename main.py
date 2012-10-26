@@ -36,7 +36,7 @@ jinja_env = jinja2.Environment(autoescape=True,
 class MainHandler(webapp2.RequestHandler):
   def render(self):
     template = jinja_env.get_template('main.html')
-    self.response.out.write(template.render())
+    self.response.out.write(template.render(logged_in = False))
 
   def get(self):
     if auth_util.auth_into_site(self) :
@@ -52,7 +52,8 @@ class TrailingHandler(webapp2.RequestHandler):
 class LoginHandler(webapp2.RequestHandler):
   def render(self, errors = None):
     template = jinja_env.get_template('login.html')
-    html = template.render(errors = errors)
+    html = template.render(errors = errors,
+                           logged_in = False)
     self.response.out.write(html)
 
   def get(self):
@@ -96,7 +97,8 @@ class LoginHandler(webapp2.RequestHandler):
 class RegisterHandler(webapp2.RequestHandler):
   def render(self, errors = None):
     template = jinja_env.get_template('register.html')
-    html = template.render(errors = errors)
+    html = template.render(errors = errors, 
+                           logged_in = False)
     self.response.out.write(html)
 
   def get(self):
@@ -152,7 +154,8 @@ class PuzzlesHandler(webapp2.RequestHandler):
     template = jinja_env.get_template('puzzles.html')
 
     puzzle_info = zip(puzzles, completion)
-    self.response.out.write(template.render(puzzle_info = puzzle_info))
+    self.response.out.write(template.render(puzzle_info = puzzle_info,
+                                            logged_in = True))
 
   def get(self):
     uid = auth_util.auth_into_site(self)
@@ -166,7 +169,10 @@ class PuzzlesHandler(webapp2.RequestHandler):
 class PuzzleHandler(webapp2.RequestHandler):
   def render(self, user, puzzle, up_info):
     template = jinja_env.get_template('puzzle.html')
-    self.response.out.write(template.render(user = user, puzzle = puzzle, up_info = up_info))
+    self.response.out.write(template.render(user = user, 
+                                            puzzle = puzzle, 
+                                            up_info = up_info,
+                                            logged_in = True))
 
   def get(self, short_code):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
@@ -203,7 +209,7 @@ class PuzzleSubmitPageHandler(webapp2.RequestHandler):
   # handler for puzzle submission page
   def render(self):
     template = jinja_env.get_template('puzzle_submit.html')
-    self.response.out.write(template.render())
+    self.response.out.write(template.render(logged_in = 'True'))
 
   def get(self):
     uid = auth_util.auth_into_site(self)
