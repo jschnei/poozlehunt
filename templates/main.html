@@ -1,25 +1,8 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Poozle Hunt!</title>
-    <link href="css/onecol.css" rel="stylesheet">
-  </head>
-  <body>
-    <div class = "container">
-      <div id="header">
-        <h1>
-          Poozle Hunt
-        </h1>
-      </div>
-      <div id="content">
-        <h2>
-          Poozle Hunt | Main
-        </h2>
-        <p>
-            Welcome to Poozle Hunt. If this is your first time here, please <a href = 'register'>register</a>. 
-            Otherwise, log in <a href = 'login'>here</a> to start solving puzzles!
-        </p>
-      </div>
-    </div>
-  </body>
-</html>
+{% extends "base.html" %}
+{% block title %} Poozle Hunt | Main {% endblock %}
+{% block content %} 
+<p>
+  Welcome to Poozle Hunt. If this is your first time here, please <a href = 'register'>register</a>. 
+  Otherwise, log in <a href = 'login'>here</a> to start solving puzzles!
+</p>
+{% endblock %}

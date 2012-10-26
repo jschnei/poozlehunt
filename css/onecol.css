@@ -7,6 +7,19 @@ body
   background: #fff;
 }
 
+
+h1, h2, h3, h4, h5, h6
+{
+  margin: 0 0 1em;
+  line-height: 1.1;
+}
+
+h2, h3 { color: #003d5d; }
+h2 { font-size: 218.75%; }
+h3 { font-size: 137.5%; }
+h4 { font-size: 118.75%; }
+h5 { font-size: 112.5%; }
+
 #container
 {
   margin: 0 30px;

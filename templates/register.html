@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Online Museum Caper! | Registration</title>
-    </head>
-    <body>
-      <div id = 'title'>
-          <h1>Registration</h1>
-      </div>
-      <div id = 'message'>
+{% extends "base.html" %}
+{% block title %} Poozle Hunt | Registration {% endblock %}
+{% block content %} 
+<div id = 'message'>
           <p>
             If you don't already have an account, please sign up here:
           </p>
@@ -35,5 +29,4 @@
           <input type = "submit">
       </form>
     </div>
-    </body>
-</html>
+{% endblock %}

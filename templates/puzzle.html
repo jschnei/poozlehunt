@@ -1,28 +1,23 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Poozle Hunt! | {{ puzzle.title }} </title>
-  </head>
-  <body>
-    <div id = 'title'>
-      <h1>{{puzzle.title}}{% if up_info.solved %} (solved!) {% endif %}</h1>
-    </div>
+{% extends "base.html" %}
+{% block title %}  {{puzzle.title}}{% if up_info.solved %} (solved!) {% endif %}{% endblock %}
+{% block content %} 
     <div id = 'text'>
-     <p>
-      {{puzzle.text}}
-     </p>
+      <p>
+        {{puzzle.text}}
+      </p>
     </div>
-    <br>
-    <form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">
-    <input type="text" name="answer">
-    <input type="submit" value="Submit">
-    </form>
-    {% if user.is_admin == 1 and not puzzle.approved %}
-    <form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
-    <input type="submit" value="Approve">
-    </form>
-    {% endif %}
-    <br>
-    <input type="submit" onClick="parent.location='/puzzles'" value="Back">
-  </body>
-</html>
+    <div id = 'answer'>
+      <br>
+      <form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">
+      <input type="text" name="answer">
+      <input type="submit" value="Submit">
+      </form>
+      {% if user.is_admin == 1 and not puzzle.approved %}
+        <form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
+        <input type="submit" value="Approve">
+        </form>
+      {% endif %}
+      <br>
+      <input type="submit" onClick="parent.location='/puzzles'" value="Back">
+    </div>
+{% endblock %}
