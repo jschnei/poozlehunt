@@ -21,9 +21,11 @@ import jinja2
 import os
 import sys
 import webapp2
+import random
 
 import auth_util
 import puzzle_util
+import user_util
 
 from models import *
 
@@ -148,32 +150,36 @@ class LogoutHandler(webapp2.RequestHandler):
 class PuzzlesHandler(webapp2.RequestHandler):
   def render(self, puzzles, completion):
     template = jinja_env.get_template('puzzles.html')
-    
+
     puzzle_info = zip(puzzles, completion)
     self.response.out.write(template.render(puzzle_info = puzzle_info))
 
   def get(self):
-    puzzles = puzzle_util.get_puzzles()
     uid = auth_util.auth_into_site(self)
+    puzzles = puzzle_util.get_puzzles()
+
+    puzzles = filter(lambda k: user_util.user_can_view_puzzle(uid, k.key().id()), puzzles)
 
     completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
     self.render(puzzles, completion)
 
 class PuzzleHandler(webapp2.RequestHandler):
-  def render(self, puzzle, up_info):
+  def render(self, user, puzzle, up_info):
     template = jinja_env.get_template('puzzle.html')
-    self.response.out.write(template.render(puzzle = puzzle, up_info = up_info))
+    self.response.out.write(template.render(user = user, puzzle = puzzle, up_info = up_info))
 
   def get(self, short_code):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
     uid = auth_util.auth_into_site(self)
     pid = puzzle.key().id()
+    user = User.get_by_id(uid)
 
     up_info = puzzle_util.get_upinfo(uid, pid)
 
-    self.render(puzzle, up_info)
+    self.render(user, puzzle, up_info)
 
-class PuzzleSubmitHandler(webapp2.RequestHandler):
+class PuzzleSubmitAnswerHandler(webapp2.RequestHandler):
+  # handler for submitted answers to puzzles
   def get(self, short_code):
     self.redirect('/puzzles/' + short_code)
 
@@ -192,16 +198,51 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
     up_info.put()
 
     self.redirect('/puzzles/' + short_code) #temporary!
-    
-class TestHandler(webapp2.RequestHandler):
+
+class PuzzleSubmitPageHandler(webapp2.RequestHandler):
+  # handler for puzzle submission page
+  def render(self):
+    template = jinja_env.get_template('puzzle_submit.html')
+    self.response.out.write(template.render())
+
   def get(self):
-    test = Puzzle(title = 'test',
-                  short_code = 'tst',
-                  answer = 'test',
-                  text = 'testetsetstetststetststtest')
-    test.put()
-    
-    self.redirect('/')
+    uid = auth_util.auth_into_site(self)
+    self.render()
+
+class PuzzleSubmitHandler(webapp2.RequestHandler):
+  def get(self):
+    self.redirect('/puzzle_submit')
+
+  def post(self):
+    uid = auth_util.auth_into_site(self)
+    if uid:
+	title = self.request.get('title')
+	text = self.request.get('text')
+	answer = self.request.get('answer')
+	
+	if title != '' and text != '' and answer != '':
+	    puzzle = Puzzle(title = title,
+			short_code = 'tmp' + str(int(random.random() * 100000000)), #change later
+			answer = answer,
+			text = text,
+			author = uid,
+			approved = user_util.is_admin(uid))
+
+	    puzzle.put()
+
+    self.redirect('/puzzles')
+ 
+class PuzzleApproveHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/puzzles/' + short_code)
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    pid = puzzle_util.get_puzzle_by_code(short_code).key().id()
+
+    puzzle_util.approve_puzzle(uid, pid)
+
+    self.redirect('/puzzles/' + short_code)
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -210,6 +251,9 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
                                ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitHandler),
-                               ('/test', TestHandler) ],
+			       ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
+			       ('/puzzles/([a-zA-Z0-9]+)/approve', PuzzleApproveHandler),
+			       ('/puzzle_submit', PuzzleSubmitPageHandler),
+			       ('/puzzle_submit/submit', PuzzleSubmitHandler),
+				],
                               debug=True)

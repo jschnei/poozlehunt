@@ -2,6 +2,8 @@
 
 from models import *
 
+import user_util
+
 def get_puzzles():
   return list(db.Query(Puzzle))
 
@@ -35,3 +37,9 @@ def has_user_tried(uid, pid):
   upinfo = get_upinfo(uid, pid)
   return (upinfo.tries > 0) if upinfo else False
 
+def approve_puzzle(uid, pid):
+  if uid and user_util.is_admin(uid):
+    puzzle = get_puzzle_by_id(pid)
+    puzzle.approved = True
+
+    puzzle.put()
