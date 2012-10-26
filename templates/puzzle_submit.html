@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Poozle Hunt! | Submit a Puzzle </title>
+  </head>
+  <body>
+    <div id = 'title'>
+    </div>
+    {% for image in images %}
+    <img src="/imgs?id={{ image.key() }}" /><br>
+    {% endfor %}
+    <div id = 'text'>
+     <p>
+     </p>
+    </div>
+    <br>
+    <form action="/puzzle_submit/submit" method="post">
+    Title: <input type="form" name="title" />
+    <br>
+    <textarea rows="30" cols="60" name="text">Type your puzzle here</textarea>
+    <br>
+    Answer: <input type="form" name="answer" />
+    <br>
+    <input type="file" name="img" />
+    <input type="submit" value="Submit Puzzle" />
+    </form>
+  </body>
+</html>
