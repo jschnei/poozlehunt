@@ -43,3 +43,9 @@ def approve_puzzle(uid, pid):
     puzzle.approved = True
 
     puzzle.put()
+
+# probably will be moved later
+def get_puzzle_pdf(pid):
+  query = db.Query(Pdf)
+  query.filter('pid =', pid)
+  return query.get()

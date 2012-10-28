@@ -25,9 +25,14 @@ class UserPuzzleInfo(db.Model):
   uid = db.IntegerProperty(required=True)
   pid = db.IntegerProperty(required=True)
 
+  locked = db.BooleanProperty(required=True, default=False)
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)
 
 class Image(db.Model):
   uid = db.IntegerProperty(required=True)
   img = db.BlobProperty()
+
+class Pdf(db.Model):
+  pid = db.IntegerProperty(required=True)
+  pdf = db.BlobProperty()
