@@ -264,27 +264,29 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
   def post(self):
     uid = auth_util.auth_into_site(self)
     if uid:
-	title = self.request.get('title')
-	text = self.request.get('text')
-	answer = self.request.get('answer')
+      title = self.request.get('title')
+      text = self.request.get('text')
+      answer = self.request.get('answer')
+      ptype = self.request.get('ptype')
 
-	
-	if title != '' and text != '' and answer != '':
-	    puzzle = Puzzle(title = title,
-			short_code = 'tmp' + str(int(random.random() * 100000000)), #change later
-			answer = answer,
-			text = text,
-			author = uid,
-			approved = user_util.is_admin(uid))
 
-	    puzzle.put()
+    if title != '' and text != '' and answer != '':
+        puzzle = Puzzle(title = title,
+        short_code = 'tmp' + str(int(random.random() * 100000000)), #change later
+        answer = answer,
+        text = text,
+        author = uid,
+        ptype = ptype,
+        approved = user_util.is_admin(uid))
 
-	    pdf = self.request.get('pdf')
-	    if pdf:
-		db_pdf = Pdf(pid = puzzle.key().id(),
-			     pdf = db.Blob(pdf))
-		
-		db_pdf.put()
+        puzzle.put()
+
+        pdf = self.request.get('pdf')
+        if pdf:
+          db_pdf = Pdf(pid = puzzle.key().id(),
+            pdf = db.Blob(pdf))
+
+          db_pdf.put()
 
     self.redirect('/puzzles')
  
