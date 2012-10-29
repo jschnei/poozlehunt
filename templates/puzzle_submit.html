@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% block title %} Submit a Puzzle {% endblock %}
 {% block content %} 
-  {% for image in images %}
-    <img src="/img_uploads?id={{ image.key().id() }}" /><br>
-  </form>
-  {% endfor %}
   <br>
   <form action="/puzzle_submit/submit" method="post" enctype="multipart/form-data">
   Title: <input type="form" name="title" />
@@ -15,12 +11,13 @@
   <br>
   Answer: <input type="form" name="answer" />
   <br>
-  Upload a PDF? <input type="file" name="pdf" />
   <input type="submit" value="Submit Puzzle" />
   </form>
   <br>
-  <form action="/puzzle_submit/img_submit" method="post" enctype="multipart/form-data">
-  <input type="file" name="img" />
-  <input type="submit" value="Submit Image" />
+  <hr>
+  Upload a file:
+  <form action="/puzzle_submit/file_submit" method="post" enctype="multipart/form-data">
+  <input type="file" name="pfile" />
+  <input type="submit" value="Submit File" />
   </form>
 {% endblock %}

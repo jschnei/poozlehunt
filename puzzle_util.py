@@ -44,8 +44,19 @@ def approve_puzzle(uid, pid):
 
     puzzle.put()
 
-# probably will be moved later
-def get_puzzle_pdf(pid):
-  query = db.Query(Pdf)
-  query.filter('pid =', pid)
+
+def get_puzzle_file(author, fname):
+  query = db.Query(PuzzleFile)
+  query.filter('uid =', author)
+  query.filter('fname =', fname)
+
   return query.get()
+
+mime_map = {'gif': 'image/gif', 
+            'png': 'image/png', 
+            'jpg': 'image/jpg', 
+            'jpeg': 'image/jpeg', 
+            'pdf': 'application/pdf'}
+
+def get_mime_type(ext):
+  return mime_map[ext] if ext in mime_map else 'text/plain'

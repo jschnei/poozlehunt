@@ -33,29 +33,17 @@ jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), '
 jinja_env = jinja2.Environment(autoescape=True,
                                loader = jinja_loader)
 
-class ImageHandler(webapp2.RequestHandler):
-  def get(self):
-    img_class = Image.get_by_id(int(self.request.get('id')))
-    if img_class.img:
-      self.response.headers['Content-Type'] = 'image/png'
-      self.response.out.write(img_class.img)
+class PuzzleFileHandler(webapp2.RequestHandler):
+  def get(self, short_code, fname):
+    author = puzzle_util.get_puzzle_by_code(short_code).author
+    pfile = puzzle_util.get_puzzle_file(author, fname)
+    if pfile:
+      self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
+      self.response.out.write(pfile.pfile)
     else:
-      self.response.out.write('could not load image')
+      self.response.out.write('error: could not load file')
 
-class PdfHandler(webapp2.RequestHandler):
-  def get(self):
-    if self.request.get('puzzle'):
-	puzzle_class = puzzle_util.get_puzzle_by_code(self.request.get('puzzle'))
-	pdf = puzzle_util.get_puzzle_pdf(puzzle_class.key().id())
 
-	if pdf and pdf.pdf:
-	    self.response.headers['Content-Type'] = 'application/pdf'
-	    self.response.out.write(pdf.pdf)
-	else:
-	    self.response.out.write('no pdf')
-    else:
-	self.response.out.write('no pdf')
-	
 class MainHandler(webapp2.RequestHandler):
   def render(self):
     template = jinja_env.get_template('main.html')
@@ -190,12 +178,11 @@ class PuzzlesHandler(webapp2.RequestHandler):
     self.render(puzzles, completion)
 
 class PuzzleHandler(webapp2.RequestHandler):
-  def render(self, user, puzzle, up_info, pdf):
+  def render(self, user, puzzle, up_info):
     template = jinja_env.get_template('puzzle.html')
     self.response.out.write(template.render(user = user, 
                                             puzzle = puzzle, 
                                             up_info = up_info,
-					    pdf = pdf,
                                             logged_in = True))
 
   def get(self, short_code):
@@ -205,9 +192,8 @@ class PuzzleHandler(webapp2.RequestHandler):
     user = User.get_by_id(uid)
 
     up_info = puzzle_util.get_upinfo(uid, pid)
-    pdf = puzzle_util.get_puzzle_pdf(pid)
 
-    self.render(user, puzzle, up_info, pdf)
+    self.render(user, puzzle, up_info)
 
 class PuzzleSubmitAnswerHandler(webapp2.RequestHandler):
   # handler for submitted answers to puzzles
@@ -232,29 +218,34 @@ class PuzzleSubmitAnswerHandler(webapp2.RequestHandler):
 
 class PuzzleSubmitPageHandler(webapp2.RequestHandler):
   # handler for puzzle submission page
-  def render(self, images):
+  def render(self):
     template = jinja_env.get_template('puzzle_submit.html')
-    self.response.out.write(template.render(logged_in = 'True', images = images))
+    self.response.out.write(template.render(logged_in = 'True'))
 
   def get(self):
     uid = auth_util.auth_into_site(self)
-    images = list(db.Query(Image))
-    self.render(images)
+    self.render()
 
-class PuzzleSubmitImageHandler(webapp2.RequestHandler):
-  # handler for image submission
+class PuzzleSubmitFileHandler(webapp2.RequestHandler):
+  # handler for file submission
   def get(self):
     self.redirect('/puzzle_submit')
 
   def post(self):
     uid = auth_util.auth_into_site(self)
     if uid:
-	image = self.request.get('img')
-	db_image = Image(uid = uid,
-			 img = db.Blob(image))
+      pfile = self.request.get('pfile')
+      fname = self.request.POST['pfile'].filename
+      mime_type = puzzle_util.get_mime_type(fname.split('.')[-1])
 
-	db_image.put()
-    
+
+      db_file = PuzzleFile(uid = uid,
+                           fname = fname,
+                           mime_type = mime_type, 
+                           pfile = db.Blob(pfile))
+
+      db_file.put()
+        
     self.redirect('/puzzle_submit')
 
 class PuzzleSubmitHandler(webapp2.RequestHandler):
@@ -281,13 +272,6 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
 
         puzzle.put()
 
-        pdf = self.request.get('pdf')
-        if pdf:
-          db_pdf = Pdf(pid = puzzle.key().id(),
-            pdf = db.Blob(pdf))
-
-          db_pdf.put()
-
     self.redirect('/puzzles')
  
 class PuzzleApproveHandler(webapp2.RequestHandler):
@@ -304,18 +288,17 @@ class PuzzleApproveHandler(webapp2.RequestHandler):
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
-			       ('/img_uploads', ImageHandler),
-			       ('/pdfs', PdfHandler),
                                ('/login', LoginHandler),
                                ('/register', RegisterHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
-                               ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/approve', PuzzleApproveHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/p', PuzzleHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/f/(.+)', PuzzleFileHandler),
+			       ('/puzzles/([a-zA-Z0-9]+)/p/submit', PuzzleSubmitAnswerHandler),
+			       ('/puzzles/([a-zA-Z0-9]+)/p/approve', PuzzleApproveHandler),
 			       ('/puzzle_submit', PuzzleSubmitPageHandler),
 			       ('/puzzle_submit/submit', PuzzleSubmitHandler),
-			       ('/puzzle_submit/img_submit', PuzzleSubmitImageHandler),
+			       ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
 				],
 
                               debug=True)

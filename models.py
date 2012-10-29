@@ -30,10 +30,8 @@ class UserPuzzleInfo(db.Model):
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)
 
-class Image(db.Model):
+class PuzzleFile(db.Model):
   uid = db.IntegerProperty(required=True)
-  img = db.BlobProperty()
-
-class Pdf(db.Model):
-  pid = db.IntegerProperty(required=True)
-  pdf = db.BlobProperty()
+  fname = db.StringProperty(required=True)
+  pfile = db.BlobProperty()
+  mime_type = db.StringProperty()
