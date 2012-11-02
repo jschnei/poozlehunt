@@ -6,15 +6,9 @@
       <a href="/pdfs?puzzle={{ puzzle.short_code }}">download as PDF</a>
     </div>
     {% endif %}
-    {% if puzzle.ptype == 'text' %}
     <div id = 'text'>
-      <pre>{{puzzle.text}}</pre>
-    </div>
-    {% elif puzzle.ptype == 'html' %}
-    <div id = 'html'>
       {{puzzle.text | safe}}
     </div>
-    {% endif %}
     <div id = 'answer'>
       <br>
       <form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">

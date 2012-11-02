@@ -12,6 +12,12 @@ handlers:
 - url: /css
   static_dir: css
 
+- url: /tiny_mce
+  static_dir: tiny_mce
+
+- url: /images
+  static_dir: images
+  
 - url: .*
   script: main.app
 

@@ -14,8 +14,6 @@ class Puzzle(db.Model):
   short_code = db.StringProperty(required=True)
   answer = db.StringProperty(required=True)
   text = db.TextProperty(required=True)
-  ptype = db.StringProperty(required=True, default='text')
-
   author = db.IntegerProperty(required=True)
   approved = db.BooleanProperty(required=True, default=False)
 

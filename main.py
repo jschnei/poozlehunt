@@ -34,15 +34,13 @@ jinja_env = jinja2.Environment(autoescape=True,
                                loader = jinja_loader)
 
 class PuzzleFileHandler(webapp2.RequestHandler):
-  def get(self, short_code, fname):
-    author = puzzle_util.get_puzzle_by_code(short_code).author
-    pfile = puzzle_util.get_puzzle_file(author, fname)
+  def get(self, user, fname):
+    pfile = puzzle_util.get_puzzle_file(user, fname)
     if pfile:
       self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
       self.response.out.write(pfile.pfile)
     else:
       self.response.out.write('error: could not load file')
-
 
 class MainHandler(webapp2.RequestHandler):
   def render(self):
@@ -234,10 +232,9 @@ class PuzzleSubmitFileHandler(webapp2.RequestHandler):
   def post(self):
     uid = auth_util.auth_into_site(self)
     if uid:
-      pfile = self.request.get('pfile')
-      fname = self.request.POST['pfile'].filename
+      pfile = self.request.get('userfile')
+      fname = self.request.POST['userfile'].filename
       mime_type = puzzle_util.get_mime_type(fname.split('.')[-1])
-
 
       db_file = PuzzleFile(uid = uid,
                            fname = fname,
@@ -245,8 +242,9 @@ class PuzzleSubmitFileHandler(webapp2.RequestHandler):
                            pfile = db.Blob(pfile))
 
       db_file.put()
-        
-    self.redirect('/puzzle_submit')
+
+      template = jinja_env.get_template('img_upload.html')
+      self.response.out.write(template.render(uid = uid, fname = fname))
 
 class PuzzleSubmitHandler(webapp2.RequestHandler):
   def get(self):
@@ -256,9 +254,8 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
     uid = auth_util.auth_into_site(self)
     if uid:
       title = self.request.get('title')
-      text = self.request.get('text')
+      text = self.request.get('input')
       answer = self.request.get('answer')
-      ptype = self.request.get('ptype')
 
 
     if title != '' and text != '' and answer != '':
@@ -267,7 +264,6 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
         answer = answer,
         text = text,
         author = uid,
-        ptype = ptype,
         approved = user_util.is_admin(uid))
 
         puzzle.put()
@@ -292,13 +288,13 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/register', RegisterHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
-                               ('/puzzles/([a-zA-Z0-9]+)/p', PuzzleHandler),
-                               ('/puzzles/([a-zA-Z0-9]+)/f/(.+)', PuzzleFileHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/p/submit', PuzzleSubmitAnswerHandler),
-			       ('/puzzles/([a-zA-Z0-9]+)/p/approve', PuzzleApproveHandler),
-			       ('/puzzle_submit', PuzzleSubmitPageHandler),
-			       ('/puzzle_submit/submit', PuzzleSubmitHandler),
-			       ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
+                               ('/files/([a-zA-Z0-9]+)/(.+)', PuzzleFileHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/approve', PuzzleApproveHandler),
+                               ('/puzzle_submit', PuzzleSubmitPageHandler),
+                               ('/puzzle_submit/submit', PuzzleSubmitHandler),
+                               ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
 				],
 
                               debug=True)

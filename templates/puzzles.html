@@ -9,7 +9,7 @@
   <div id = 'puzzles'>
     <ul>
     {% for puzzle, status in puzzle_info %}
-      <li><a href = 'puzzles/{{puzzle.short_code}}/p'> {{ puzzle.title }}</a>{% if status %} (solved!){% endif %} </li>
+      <li><a href = 'puzzles/{{puzzle.short_code}}'> {{ puzzle.title }}</a>{% if status %} (solved!){% endif %} </li>
     {% endfor %}
     </ul>
   </div>

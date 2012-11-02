@@ -47,7 +47,7 @@ def approve_puzzle(uid, pid):
 
 def get_puzzle_file(author, fname):
   query = db.Query(PuzzleFile)
-  query.filter('uid =', author)
+  query.filter('uid =', int(author))
   query.filter('fname =', fname)
 
   return query.get()
