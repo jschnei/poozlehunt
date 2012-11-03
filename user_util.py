@@ -25,3 +25,12 @@ def user_can_view_puzzle(uid, pid):
 
   return False
 
+def user_can_edit_puzzle(uid, pid):
+  if is_admin(uid):
+    return True
+
+  puzzle = puzzle_util.get_puzzle_by_id(pid)
+  if puzzle.author == uid:
+    return True
+
+  return False

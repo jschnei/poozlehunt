@@ -282,6 +282,51 @@ class PuzzleApproveHandler(webapp2.RequestHandler):
 
     self.redirect('/puzzles/' + short_code)
 
+class PuzzleEditHandler(webapp2.RequestHandler):
+  def render(self, user, puzzle, up_info):
+    template = jinja_env.get_template('puzzle_edit.html')
+    self.response.out.write(template.render(user = user, 
+                                            puzzle = puzzle, 
+                                            up_info = up_info,
+                                            logged_in = True))
+
+  def get(self, short_code):
+    puzzle = puzzle_util.get_puzzle_by_code(short_code)
+    uid = auth_util.auth_into_site(self)
+    pid = puzzle.key().id()
+    user = User.get_by_id(uid)
+
+    if user_util.user_can_edit_puzzle(uid, pid):
+      up_info = puzzle_util.get_upinfo(uid, pid)
+
+      self.render(user, puzzle, up_info)
+    else:
+      self.redirect('/puzzles')
+
+class PuzzleEditSubmitHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/puzzles')
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+
+    if uid:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+
+      if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
+        puzzle.title = self.request.get('title')
+        puzzle.text = self.request.get('input')
+        puzzle.answer = self.request.get('answer')
+
+        puzzle.put()
+
+
+
+
+      
+
+    self.redirect('/puzzles')
+
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
@@ -292,6 +337,8 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/files/([a-zA-Z0-9]+)/(.+)', PuzzleFileHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/approve', PuzzleApproveHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/edit', PuzzleEditHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/edit_submit', PuzzleEditSubmitHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
