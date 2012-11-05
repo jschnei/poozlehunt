@@ -348,6 +348,12 @@ class PuzzleEditSubmitHandler(webapp2.RequestHandler):
 
     self.redirect('/puzzles')
 
+class HuntHandler(webapp2.RequestHandler):
+  pass
+
+class HuntEditHandler(webapp2.RequestHandler):
+  pass
+
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
@@ -364,6 +370,9 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
+
+			       ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
 				],
 
                               debug=True)
