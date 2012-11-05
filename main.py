@@ -268,6 +268,12 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
 
         puzzle.put()
 
+        up_info = UserPuzzleInfo(uid = uid,
+                                 pid = puzzle.key().id(),
+                                 author = True,
+                                 solved = True)
+        up_info.put()
+
     self.redirect('/puzzles')
  
 class PuzzleApproveHandler(webapp2.RequestHandler):
@@ -320,10 +326,6 @@ class PuzzleEditSubmitHandler(webapp2.RequestHandler):
 
         puzzle.put()
 
-
-
-
-      
 
     self.redirect('/puzzles')
 

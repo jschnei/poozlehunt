@@ -24,6 +24,7 @@ class UserPuzzleInfo(db.Model):
   uid = db.IntegerProperty(required=True)
   pid = db.IntegerProperty(required=True)
 
+  author = db.BooleanProperty(required=True, default=False)
   locked = db.BooleanProperty(required=True, default=False)
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)

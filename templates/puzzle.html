@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}  {{puzzle.title}}{% if up_info.solved %} (solved!) {% endif %}{% endblock %}
+{% block title %}  {{puzzle.title}}
+{% if up_info.solved %} (solved!) {% endif %}
+{% if up_info.author %}
+  <a href = '/puzzles/{{ puzzle.short_code }}/edit'> [edit] </a>
+{% endif %}
+{% endblock %}
 {% block content %} 
-    {% if pdf %}
-    <div id = 'pdf'>
-      <a href="/pdfs?puzzle={{ puzzle.short_code }}">download as PDF</a>
-    </div>
-    {% endif %}
     <div id = 'text'>
       {{puzzle.text | safe}}
     </div>
