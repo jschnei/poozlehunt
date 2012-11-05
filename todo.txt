@@ -1,9 +1,10 @@
 the awesome to-do list!!!:
 
 priority low:
-
+- make sure edits don't get auto-approved
 
 priority super low:
 - make sure people can't view puzzles that aren't approved
 
 priority lol:
+- draw the website

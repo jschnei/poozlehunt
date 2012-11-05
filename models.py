@@ -29,6 +29,12 @@ class UserPuzzleInfo(db.Model):
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)
 
+class PuzzleLockInfo(db.Model):
+  # represents that you must solve puzzle <ppid> before puzzle <pid>
+
+  pid = db.IntegerProperty(required=True)
+  ppid = db.IntegerProperty(required=True)
+
 class PuzzleFile(db.Model):
   uid = db.IntegerProperty(required=True)
   fname = db.StringProperty(required=True)
