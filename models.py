@@ -17,8 +17,17 @@ class Puzzle(db.Model):
   author = db.IntegerProperty(required=True)
   approved = db.BooleanProperty(required=True, default=False)
 
+  is_puzzle = db.BooleanProperty(required=True, default=True)
   created = db.DateTimeProperty(auto_now_add = True)
 
+class PuzzleHunt(db.Model):
+  short_code = db.StringProperty(required=True)
+  num_puzzles = db.IntegerProperty(required=True, default=0)
+
+class PuzzleHuntPuzzleInfo(db.Model):
+  # maps hunts to their individual puzzles
+  hid = db.IntegerProperty(required=True)
+  pid = db.IntegerProperty(required=True)
 
 class UserPuzzleInfo(db.Model):
   uid = db.IntegerProperty(required=True)
