@@ -7,4 +7,4 @@ priority super low:
 - make sure people can't view puzzles that aren't approved
 
 priority lol:
-- draw the website
+- make queries in PuzzlesHandler/OwnPuzzlesHandler not silly

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} Your Puzzles {% endblock %}
+{% block content %} 
+  <div id = 'message'>
+    <p>
+      Here are the puzzles you have written.
+    </p>
+  </div>
+  <div id = 'puzzles'>
+    <ul>
+    {% for puzzle, status in puzzle_info %}
+      <li>
+        <a href = 'puzzles/{{puzzle.short_code}}'> {{ puzzle.title }}</a>{% if status %} (solved!){% endif %}
+        <a href = '/puzzles/{{ puzzle.short_code }}/edit'> [edit] </a>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  <br>
+  ...or <a href="/puzzle_submit">submit a puzzle</a>
+{% endblock %}

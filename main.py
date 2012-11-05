@@ -170,7 +170,26 @@ class PuzzlesHandler(webapp2.RequestHandler):
     uid = auth_util.auth_into_site(self)
     puzzles = puzzle_util.get_puzzles()
 
-    puzzles = filter(lambda k: user_util.user_can_view_puzzle(uid, k.key().id()), puzzles)
+    puzzle_filter = lambda k: (user_util.user_can_view_puzzle(uid, k.key().id()) and not k.author == uid)
+    puzzles = filter(puzzle_filter, puzzles)
+
+    completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+    self.render(puzzles, completion)
+
+class OwnPuzzlesHandler(webapp2.RequestHandler):
+  def render(self, puzzles, completion):
+    template = jinja_env.get_template('ownpuzzles.html')
+
+    puzzle_info = zip(puzzles, completion)
+    self.response.out.write(template.render(puzzle_info = puzzle_info,
+                                            logged_in = True))
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    puzzles = puzzle_util.get_puzzles()
+
+    puzzle_filter = lambda k: (k.author == uid)
+    puzzles = filter(puzzle_filter, puzzles)
 
     completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
     self.render(puzzles, completion)
@@ -335,6 +354,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/register', RegisterHandler),
                                ('/logout', LogoutHandler),
                                ('/puzzles', PuzzlesHandler),
+                               ('/ownpuzzles', OwnPuzzlesHandler),
                                ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
                                ('/files/([a-zA-Z0-9]+)/(.+)', PuzzleFileHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
