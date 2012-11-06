@@ -21,6 +21,8 @@ class Puzzle(db.Model):
   created = db.DateTimeProperty(auto_now_add = True)
 
 class PuzzleHunt(db.Model):
+  title = db.StringProperty(required=True)
+
   short_code = db.StringProperty(required=True)
   num_puzzles = db.IntegerProperty(required=True, default=0)
 
@@ -37,6 +39,15 @@ class UserPuzzleInfo(db.Model):
   locked = db.BooleanProperty(required=True, default=False)
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)
+
+class UserHuntInfo(db.Model):
+  uid = db.IntegerProperty(required=True)
+  hid = db.IntegerProperty(required=True)
+
+  author = db.BooleanProperty(required=True, default=False)
+  locked = db.BooleanProperty(required=True, default=False)
+  solved = db.BooleanProperty(required=True, default=False)
+  num_solved = db.IntegerProperty(required=True, default=0)
 
 class PuzzleLockInfo(db.Model):
   # represents that you must solve puzzle <ppid> before puzzle <pid>

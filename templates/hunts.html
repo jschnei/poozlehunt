@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %} Poozle Hunts {% endblock %}
+{% block content %} 
+  <div id = 'message'>
+    <p>
+      The following hunts are currently available.
+    </p>
+  </div>
+  <div id = 'hunts'>
+    <ul>
+    {% for hunt, status in puzzle_info %}
+      <li><a href = 'hunts/{{hunt.short_code}}'> {{ hunt.title }}</a>{% if status %} (solved!){% endif %} </li>
+    {% endfor %}
+    </ul>
+  </div>
+  <br>
+  ...or <a href="/create_hunt">create a new hunt</a>
+{% endblock %}

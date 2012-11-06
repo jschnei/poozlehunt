@@ -26,6 +26,7 @@ import random
 import auth_util
 import puzzle_util
 import user_util
+import hunt_util
 
 from models import *
 
@@ -174,6 +175,7 @@ class PuzzlesHandler(webapp2.RequestHandler):
     puzzles = filter(puzzle_filter, puzzles)
 
     completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+
     self.render(puzzles, completion)
 
 class OwnPuzzlesHandler(webapp2.RequestHandler):
@@ -348,6 +350,44 @@ class PuzzleEditSubmitHandler(webapp2.RequestHandler):
 
     self.redirect('/puzzles')
 
+class HuntsHandler(webapp2.RequestHandler):
+  def render(self, hunts, completion):
+    template = jinja_env.get_template('hunts.html')
+
+    puzzle_info = zip(hunts, completion)
+    self.response.out.write(template.render(puzzle_info = puzzle_info, logged_in = True))
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    hunts = hunt_util.get_hunts()
+    # no filters for hunts here yet
+
+    completion = [hunt_util.has_user_solved(uid, h.key().id()) for h in hunts]
+
+    self.render(hunts, completion)
+
+class HuntHandler(webapp2.RequestHandler):
+  def render(self, hunt, puzzles, completion):
+    template = jinja_env.get_template('hunt.html')
+
+    puzzle_info = zip(puzzles, completion)
+    self.response.out.write(template.render(hunt = hunt, puzzle_info = puzzle_info))
+
+  def get(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    
+    if uid:
+      hunt = hunt_util.get_hunt_by_code(short_code)
+      puzzles = hunt_util.get_puzzles_of_hunt(hunt.key().id())
+
+      completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+
+      self.render(hunt, puzzles, completion)
+
+
+class HuntEditHandler(webapp2.RequestHandler):
+  pass
+
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
@@ -364,6 +404,10 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
+
+			       ('/hunts', HuntsHandler),
+			       ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
 				],
 
                               debug=True)
