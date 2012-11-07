@@ -10,9 +10,10 @@ def get_puzzles():
 def get_puzzle_by_id(pid):
   return Puzzle.get_by_id(pid)
 
-def get_puzzle_by_code(short_code):
+def get_puzzle_by_code(short_code, is_puzzle=True):
   query = db.Query(Puzzle)
   query.filter('short_code =', short_code)
+  query.filter('is_puzzle =', is_puzzle)
   return query.get()
 
 def get_upinfo(uid, pid, create_if_none=True):

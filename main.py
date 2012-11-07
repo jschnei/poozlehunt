@@ -384,9 +384,51 @@ class HuntHandler(webapp2.RequestHandler):
 
       self.render(hunt, puzzles, completion)
 
+class HuntCreateHandler(webapp2.RequestHandler):
+  def render(self):
+    template = jinja_env.get_template('create_hunt.html')
+
+    self.response.out.write(template.render())
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    
+    if uid:
+      self.render()
 
 class HuntEditHandler(webapp2.RequestHandler):
-  pass
+  def get(self, short_code):
+    self.redirect('/hunts')
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+
+    if uid:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+
+      if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
+        puzzle.title = self.request.get('title')
+        puzzle.text = self.request.get('input')
+        puzzle.answer = self.request.get('answer')
+
+        puzzle.put()
+
+    self.redirect('/puzzles')
+
+class HuntsHandler(webapp2.RequestHandler):
+  def render(self, hunts, completion):
+    template = jinja_env.get_template('hunts.html')
+
+    puzzle_info = zip(hunts, completion)
+    self.response.out.write(template.render(puzzle_info = puzzle_info, logged_in = True))
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    hunts = hunt_util.get_hunts()
+    # no filters for hunts here yet
+
+    completion = [hunt_util.has_user_solved(uid, h.key().id()) for h in hunts]
+
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -405,9 +447,10 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
 
-			       ('/hunts', HuntsHandler),
-			       ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
-			       ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
+                               ('/hunts', HuntsHandler),
+                               ('/create_hunt', HuntCreateHandler),
+                               ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
 				],
 
                               debug=True)
