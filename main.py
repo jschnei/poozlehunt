@@ -420,11 +420,12 @@ class HuntCreateSubmitHandler(webapp2.RequestHandler):
       self.redirect('/create_hunt')
 
 class HuntEditHandler(webapp2.RequestHandler):
-  def render(self, user, hunt):
+  def render(self, user, hunt, puzzles):
     template = jinja_env.get_template('edit_hunt.html')
 
     self.response.out.write(template.render(user = user,
                                             hunt = hunt,
+					    puzzles = puzzles,
                                             logged_in = True))
 
   def get(self, short_code):
@@ -433,8 +434,10 @@ class HuntEditHandler(webapp2.RequestHandler):
     hid = hunt.key().id()
     user = User.get_by_id(uid)
 
+    puzzles = hunt_util.get_puzzles_of_hunt(hid)
+
     if True: # todo: user_can_edit_hunt(uid, hid)
-      self.render(user, hunt)
+      self.render(user, hunt, puzzles)
     else:
       self.redirect('/hunts')
 
@@ -457,20 +460,20 @@ class HuntEditSubmitHandler(webapp2.RequestHandler):
 
     self.redirect('/puzzles')
 
-class HuntsHandler(webapp2.RequestHandler):
-  def render(self, hunts, completion):
-    template = jinja_env.get_template('hunts.html')
+class HuntEditAddPuzzleHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts/%s/edit' % short_code)
 
-    puzzle_info = zip(hunts, completion)
-    self.response.out.write(template.render(puzzle_info = puzzle_info, logged_in = True))
-
-  def get(self):
+  def post(self, short_code):
     uid = auth_util.auth_into_site(self)
-    hunts = hunt_util.get_hunts()
-    # no filters for hunts here yet
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    puzzle = puzzle_util.get_puzzle_by_code(self.request.get('puzzle'))
 
-    completion = [hunt_util.has_user_solved(uid, h.key().id()) for h in hunts]
-
+    if uid and hunt and puzzle:
+      pid = puzzle.key().id()
+      new_phpi = PuzzleHuntPuzzleInfo(hid = hunt.key().id(),
+				      pid = pid)
+      self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -488,13 +491,13 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
-
                                ('/hunts', HuntsHandler),
                                ('/create_hunt', HuntCreateHandler),
                                ('/create_hunt/submit', HuntCreateSubmitHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit_add', HuntEditAddPuzzleHandler),
 				],
 
                               debug=True)
