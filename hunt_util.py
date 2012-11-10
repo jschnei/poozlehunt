@@ -28,6 +28,10 @@ def get_uhinfo(uid, hid, create_if_none=True):
 
   return ret
 
+def has_user_solved(uid, hid):
+  uhinfo = get_uhinfo(uid, hid)
+  return uhinfo.solved
+
 def get_puzzles_of_hunt(hid):
   query = db.Query(PuzzleHuntPuzzleInfo)
   query.filter('hid =', hid)    

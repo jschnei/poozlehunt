@@ -396,7 +396,49 @@ class HuntCreateHandler(webapp2.RequestHandler):
     if uid:
       self.render()
 
+class HuntCreateSubmitHandler(webapp2.RequestHandler):
+  # we should really refactor this stuff soon
+  def get(self):
+    self.redirect('/create_hunt')
+
+  def post(self):
+    uid = auth_util.auth_into_site(self)
+    title = self.request.get('title')
+    short_code = self.request.get('short_code')
+
+    if uid and title != '' and short_code != '':
+      #todo: add ajax check that short_code doesn't exist
+      hunt = PuzzleHunt(title = title,
+                        short_code = short_code,
+                        num_puzzles = 0)
+
+      hunt.put()
+
+      self.redirect('/hunts/%s/edit' % short_code)
+
+    else:
+      self.redirect('/create_hunt')
+
 class HuntEditHandler(webapp2.RequestHandler):
+  def render(self, user, hunt):
+    template = jinja_env.get_template('edit_hunt.html')
+
+    self.response.out.write(template.render(user = user,
+                                            hunt = hunt,
+                                            logged_in = True))
+
+  def get(self, short_code):
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    uid = auth_util.auth_into_site(self)
+    hid = hunt.key().id()
+    user = User.get_by_id(uid)
+
+    if True: # todo: user_can_edit_hunt(uid, hid)
+      self.render(user, hunt)
+    else:
+      self.redirect('/hunts')
+
+class HuntEditSubmitHandler(webapp2.RequestHandler):
   def get(self, short_code):
     self.redirect('/hunts')
 
@@ -449,8 +491,10 @@ app = webapp2.WSGIApplication([('/', MainHandler),
 
                                ('/hunts', HuntsHandler),
                                ('/create_hunt', HuntCreateHandler),
+                               ('/create_hunt/submit', HuntCreateSubmitHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
 				],
 
                               debug=True)
