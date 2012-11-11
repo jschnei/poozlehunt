@@ -3,6 +3,7 @@
 from models import *
 
 import user_util
+import puzzle_util
 
 def get_hunts():
   return list(db.Query(PuzzleHunt))
@@ -27,6 +28,10 @@ def get_uhinfo(uid, hid, create_if_none=True):
 		       solved = False)
 
   return ret
+
+def has_user_solved(uid, hid):
+  uhinfo = get_uhinfo(uid, hid)
+  return uhinfo.solved
 
 def get_puzzles_of_hunt(hid):
   query = db.Query(PuzzleHuntPuzzleInfo)

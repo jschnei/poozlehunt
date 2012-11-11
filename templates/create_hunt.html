@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %} Create a Hunt {% endblock %}
+{% block content %} 
+  <script type="text/javascript" src="tiny_mce/tiny_mce.js"></script>
+  <form action="/create_hunt/submit" method="post" enctype="multipart/form-data">
+  Title: <input type="form" name="title" /><br>
+  Short code: <input type="form" name="short_code" />
+  <br>
+  <input type="submit" value="Create hunt..." />
+  </form>
+{% endblock %}

@@ -384,9 +384,119 @@ class HuntHandler(webapp2.RequestHandler):
 
       self.render(hunt, puzzles, completion)
 
+class HuntCreateHandler(webapp2.RequestHandler):
+  def render(self):
+    template = jinja_env.get_template('create_hunt.html')
+
+    self.response.out.write(template.render())
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    
+    if uid:
+      self.render()
+
+class HuntCreateSubmitHandler(webapp2.RequestHandler):
+  # we should really refactor this stuff soon
+  def get(self):
+    self.redirect('/create_hunt')
+
+  def post(self):
+    uid = auth_util.auth_into_site(self)
+    title = self.request.get('title')
+    short_code = self.request.get('short_code')
+
+    if uid and title != '' and short_code != '':
+      #todo: add ajax check that short_code doesn't exist
+      hunt = PuzzleHunt(title = title,
+                        short_code = short_code,
+                        num_puzzles = 0)
+
+      hunt.put()
+
+      self.redirect('/hunts/%s/edit' % short_code)
+
+    else:
+      self.redirect('/create_hunt')
 
 class HuntEditHandler(webapp2.RequestHandler):
-  pass
+  def render(self, user, hunt, puzzles):
+    template = jinja_env.get_template('edit_hunt.html')
+
+    self.response.out.write(template.render(user = user,
+                                            hunt = hunt,
+					    puzzles = puzzles,
+                                            logged_in = True))
+
+  def get(self, short_code):
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    uid = auth_util.auth_into_site(self)
+    hid = hunt.key().id()
+    user = User.get_by_id(uid)
+
+    puzzles = hunt_util.get_puzzles_of_hunt(hid)
+
+    if True: # todo: user_can_edit_hunt(uid, hid)
+      self.render(user, hunt, puzzles)
+    else:
+      self.redirect('/hunts')
+
+class HuntEditSubmitHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts')
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+
+    if uid:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+
+      if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
+        puzzle.title = self.request.get('title')
+        puzzle.text = self.request.get('input')
+        puzzle.answer = self.request.get('answer')
+
+        puzzle.put()
+
+    self.redirect('/puzzles')
+
+class HuntEditAddPuzzleHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts/%s/edit' % short_code)
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    puzzle = puzzle_util.get_puzzle_by_code(self.request.get('puzzle'))
+
+    if uid and hunt and puzzle:
+      pid = puzzle.key().id()
+      new_phpi = PuzzleHuntPuzzleInfo(hid = hunt.key().id(),
+				      pid = pid)
+      new_phpi.put();
+
+      self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
+
+class HuntEditRemovePuzzleHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts/%s/edit' % short_code)
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    puzzle = puzzle_util.get_puzzle_by_code(self.request.get('puzzle'))
+    if uid and hunt and puzzle:
+	pid = puzzle.key().id()
+
+	query = db.Query(PuzzleHuntPuzzleInfo)
+	query.filter('hid =', hunt.key().id())
+	query.filter('pid =', pid)
+
+	old_phpi = query.get()
+	if old_phpi:
+	    old_phpi.delete()
+
+	self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -404,10 +514,14 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
-
-			       ('/hunts', HuntsHandler),
-			       ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
-			       ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
+                               ('/hunts', HuntsHandler),
+                               ('/create_hunt', HuntCreateHandler),
+                               ('/create_hunt/submit', HuntCreateSubmitHandler),
+                               ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit_add', HuntEditAddPuzzleHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit_remove', HuntEditRemovePuzzleHandler),
 				],
 
                               debug=True)
