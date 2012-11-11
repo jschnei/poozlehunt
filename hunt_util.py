@@ -3,6 +3,7 @@
 from models import *
 
 import user_util
+import puzzle_util
 
 def get_hunts():
   return list(db.Query(PuzzleHunt))

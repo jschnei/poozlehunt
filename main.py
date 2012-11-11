@@ -473,7 +473,30 @@ class HuntEditAddPuzzleHandler(webapp2.RequestHandler):
       pid = puzzle.key().id()
       new_phpi = PuzzleHuntPuzzleInfo(hid = hunt.key().id(),
 				      pid = pid)
+      new_phpi.put();
+
       self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
+
+class HuntEditRemovePuzzleHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts/%s/edit' % short_code)
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    puzzle = puzzle_util.get_puzzle_by_code(self.request.get('puzzle'))
+    if uid and hunt and puzzle:
+	pid = puzzle.key().id()
+
+	query = db.Query(PuzzleHuntPuzzleInfo)
+	query.filter('hid =', hunt.key().id())
+	query.filter('pid =', pid)
+
+	old_phpi = query.get()
+	if old_phpi:
+	    old_phpi.delete()
+
+	self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -498,6 +521,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/edit_add', HuntEditAddPuzzleHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/edit_remove', HuntEditRemovePuzzleHandler),
 				],
 
                               debug=True)
