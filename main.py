@@ -28,6 +28,8 @@ import puzzle_util
 import user_util
 import hunt_util
 
+import pquest
+
 from models import *
 
 jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
@@ -580,6 +582,10 @@ app = webapp2.WSGIApplication([('/', MainHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/edit_remove', HuntEditRemovePuzzleHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/puzzle_submit', HuntPuzzleSubmitPageHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/puzzle_submit/submit', HuntPuzzleSubmitHandler),
+                ('/pquest', pquest.PoozleQuestHandler),
+                ('/pquest/move', pquest.PoozleQuestMoveHandler),
 				],
+
+
 
                               debug=True)

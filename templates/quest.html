@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %} 
+
+<script type="text/javascript" src="/resource/jquery.js"></script>
+<style type="text/css">
+    .pa{position:absolute;top:0px;left:0px;}.pr{position:relative;top:0px;left:0px;width:40px;height:40px;}.z0{position:absolute;top:0px;left:0px;z-index:0;}.z1{position:absolute;top:0px;left:0px;z-index:1;}
+</style>
+
+<script language="javascript" type="text/javascript">
+    function updateDisplayPane(response) {
+        $("#display_pane").html(response);
+    }
+    function move(direction) {
+        $.post('/pquest/move',
+                {direction: direction},
+                updateDisplayPane);
+    }
+</script>
+
+<map name="nav">
+    <area shape="poly" coords="60,0,82,22,82,26,36,26,36,21,59,0" href="javascript:;" alt="North" onclick="move(1); return false;">
+    <area shape="poly" coords="0,59,21,38,26,38,26,83,21,83,0,61" href="javascript:;" alt="West" onclick="move(3); return false;">
+    <area shape="poly" coords="119,61,99,83,93,83,93,37,98,37,119,57" href="javascript:;" alt="East" onclick="move(4); return false;">
+    <area shape="poly" coords="59,119,37,98,37,93,83,93,83,97,61,119" href="javascript:;" alt="South" onclick="move(2); return false;">
+    <area shape="poly" coords="6,6,39,6,39,11,11,39,6,39" href="javascript:;" alt="Northwest" onclick="move(5); return false;">
+    <area shape="poly" coords="112,7,112,39,107,39,79,11,79,7" href="javascript:;" alt="Northeast" onclick="move(7); return false;">
+    <area shape="poly" coords="6,113,6,80,11,80,39,108,39,113" href="javascript:;" alt="Southwest" onclick="move(6); return false;">
+    <area shape="poly" coords="113,113,80,113,80,109,107,81,113,81" href="javascript:;" alt="Southeast" onclick="move(8); return false;">
+</map>
+<table>
+    <tr>
+        <td>
+            <div id="display_pane">
+            {{ cells | safe }} 
+        </div>
+        </td>
+        <td valign="top">
+            <img src="resource/quest/nav.gif" width="120" height="120" usemap="#nav" border="0" />
+        </td>
+</tr></table>
+{% endblock %}
