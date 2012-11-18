@@ -60,3 +60,9 @@ class PuzzleFile(db.Model):
   fname = db.StringProperty(required=True)
   pfile = db.BlobProperty()
   mime_type = db.StringProperty()
+
+class PoozleQuest(db.Model):
+  uid = db.IntegerProperty(required=True)
+  mmap = db.StringProperty(required=True)
+  xpos = db.IntegerProperty(required=True)
+  ypos = db.IntegerProperty(required=True)

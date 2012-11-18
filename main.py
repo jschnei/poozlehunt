@@ -28,6 +28,8 @@ import puzzle_util
 import user_util
 import hunt_util
 
+import pquest
+
 from models import *
 
 jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
@@ -279,8 +281,6 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
       text = self.request.get('input')
       answer = self.request.get('answer')
 
-
-
       if title != '' and text != '' and answer != '' and scode != '':
         if not puzzle_util.code_used(scode):
           puzzle = Puzzle(title = title,
@@ -501,6 +501,60 @@ class HuntEditRemovePuzzleHandler(webapp2.RequestHandler):
 
 	self.response.out.write('{"title":"%s", "short_code":"%s"}' % (puzzle.title, puzzle.short_code))
 
+class HuntPuzzleSubmitHandler(webapp2.RequestHandler):
+  def get(self, short_code):
+    self.redirect('/hunts/%s/puzzle_submit' % short_code)
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    if uid:
+      title = self.request.get('title')
+      text = self.request.get('input')
+      type = self.request.get('type')
+      if type == 'Puzzle':
+	answer = self.request.get('answer')
+      else:
+	answer = ''
+
+      hunt = hunt_util.get_hunt_by_code(short_code)
+
+      puzzle = Puzzle(title = title,
+		      short_code = 'tmp' + str(int(random.random() * 100000000)), #change later
+		      answer = answer,
+		      text = text,
+		      author = uid,
+		      approved = user_util.is_admin(uid),
+
+		      is_puzzle = (type == 'Puzzle'))
+
+      puzzle.put()
+
+      up_info = UserPuzzleInfo(uid = uid,
+                               pid = puzzle.key().id(),
+                               author = True,
+                               solved = True)
+      up_info.put()
+
+      new_phpi = PuzzleHuntPuzzleInfo(hid = hunt.key().id(),
+				      pid = puzzle.key().id())
+
+      new_phpi.put()
+      
+
+
+    self.redirect('/hunts/%s' % short_code)
+    
+class HuntPuzzleSubmitPageHandler(webapp2.RequestHandler):
+  # handler for puzzle submission page
+  def render(self, hunt):
+    template = jinja_env.get_template('hunt_puzzle_submit.html')
+    self.response.out.write(template.render(hunt = hunt, logged_in = 'True'))
+
+  def get(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    hunt = hunt_util.get_hunt_by_code(short_code)
+    self.render(hunt)
+
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
@@ -525,6 +579,12 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/edit_add', HuntEditAddPuzzleHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/edit_remove', HuntEditRemovePuzzleHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/puzzle_submit', HuntPuzzleSubmitPageHandler),
+			       ('/hunts/([a-zA-Z0-9]+)/puzzle_submit/submit', HuntPuzzleSubmitHandler),
+                ('/pquest', pquest.PoozleQuestHandler),
+                ('/pquest/move', pquest.PoozleQuestMoveHandler),
 				],
+
+
 
                               debug=True)
