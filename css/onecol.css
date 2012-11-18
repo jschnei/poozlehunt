@@ -4,7 +4,7 @@ body
   padding: 0;
   font: 100%/1.3 helvetica, arial, sans-serif;
   color: #444;
-  background: #fcc;
+  background: #fff;
 }
 
 
@@ -28,7 +28,7 @@ h5 { font-size: 112.5%; }
 
 #header
 {
-  background: #caa;
+  background: #ccc;
   padding: 20px;
 }
 
@@ -84,4 +84,9 @@ h5 { font-size: 112.5%; }
   text-align: right;
   padding: 20px;
   height: 1%;
+}
+
+#errors
+{
+  color: #f00
 }

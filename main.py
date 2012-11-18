@@ -275,25 +275,28 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
     uid = auth_util.auth_into_site(self)
     if uid:
       title = self.request.get('title')
+      scode = self.request.get('scode')
       text = self.request.get('input')
       answer = self.request.get('answer')
 
 
-    if title != '' and text != '' and answer != '':
-        puzzle = Puzzle(title = title,
-        short_code = 'tmp' + str(int(random.random() * 100000000)), #change later
-        answer = answer,
-        text = text,
-        author = uid,
-        approved = user_util.is_admin(uid))
 
-        puzzle.put()
+      if title != '' and text != '' and answer != '' and scode != '':
+        if not puzzle_util.code_used(scode):
+          puzzle = Puzzle(title = title,
+          short_code = scode,
+          answer = answer,
+          text = text,
+          author = uid,
+          approved = user_util.is_admin(uid))
 
-        up_info = UserPuzzleInfo(uid = uid,
-                                 pid = puzzle.key().id(),
-                                 author = True,
-                                 solved = True)
-        up_info.put()
+          puzzle.put()
+
+          up_info = UserPuzzleInfo(uid = uid,
+                                   pid = puzzle.key().id(),
+                                   author = True,
+                                   solved = True)
+          up_info.put()
 
     self.redirect('/puzzles')
  

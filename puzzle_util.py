@@ -16,6 +16,14 @@ def get_puzzle_by_code(short_code, is_puzzle=True):
   query.filter('is_puzzle =', is_puzzle)
   return query.get()
 
+def code_used(short_code):
+  query = db.Query(Puzzle)
+  query.filter('short_code =', short_code)
+  
+  return True if query.get() else False
+
+
+
 def get_upinfo(uid, pid, create_if_none=True):
   query = db.Query(UserPuzzleInfo)
   query.filter('uid =', uid)

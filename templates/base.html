@@ -32,6 +32,16 @@
         <h2>
           {% block title %}{% endblock %}
         </h2>
+          {% if errors %}
+          <div id = "errors">
+            <p> The following errors occurred: </p>
+            <ul>
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
           {% block content %}{% endblock %}
       </div>
     </div>
