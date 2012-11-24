@@ -8,11 +8,22 @@
 
 <script language="javascript" type="text/javascript">
     function updateDisplayPane(response) {
-        $("#display_pane").html(response);
+        r = $.parseJSON(response);
+        if (r.table != "") {
+            $("#display_pane").html(r.table);
+        }
+
+        $("#action_pane").html(r.action);
+        $("#result_pane").html(r.result);
     }
     function move(direction) {
         $.post('/pquest/move',
                 {direction: direction},
+                updateDisplayPane);
+    }
+    function action(target, type, subtype) {
+        $.post('/pquest/action',
+                {target: target, type: type, subtype: subtype},
                 updateDisplayPane);
     }
 </script>
@@ -27,6 +38,10 @@
     <area shape="poly" coords="6,113,6,80,11,80,39,108,39,113" href="javascript:;" alt="Southwest" onclick="move(6); return false;">
     <area shape="poly" coords="113,113,80,113,80,109,107,81,113,81" href="javascript:;" alt="Southeast" onclick="move(8); return false;">
 </map>
+
+<div id="result_pane">
+</div>
+
 <table>
     <tr>
         <td>
@@ -36,6 +51,9 @@
         </td>
         <td valign="top">
             <img src="resource/quest/nav.gif" width="120" height="120" usemap="#nav" border="0" />
+            <div id="action_pane">
+            {{ actions | safe }}
+            </div>
         </td>
 </tr></table>
 {% endblock %}
