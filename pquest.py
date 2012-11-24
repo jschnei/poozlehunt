@@ -31,6 +31,7 @@ import quest_util
 import collections
 
 from models import *
+from pquest_tiles import *
 
 jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates'))
 jinja_env = jinja2.Environment(autoescape=True,
@@ -40,9 +41,7 @@ area_map = {}
 area_map["noodle"] = "Noodle Village"
 area_map["noodle2"] = "Noodle Peninsula"
 
-tile_map = { }
-tile_map["noodle"] = [[["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Dirt"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Dirt"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Dirt"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Dirt"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Dirt"],["Dirt"],["Grass"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"]],[["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Grass"],["Dirt"]]]
-tile_map["noodle"][5][9] += ["p1"]
+solid_list = ["Ocean", "Mountain", "Rock"]
 
 length_map = { }
 length_map["noodle"] = (15, 15)
@@ -59,8 +58,14 @@ talk_dialog_map["p1"][""] = "Hello, $NAME!  How are you?"
 talk_dialog_map["p1"]["village"] = "Noodle Village has been a small farming village for over a century.  Many of us grow fruits and take them to market in Lynbrook, a city to the south."
 talk_dialog_map["p1"]["area"] = "Well, for starters, we're in Noodle Village!  It's on the northern tip of the continent!  Also, it's surrounded by mountains on all sides, and a tunnel to the south is the only way to get in or out."
 
-def img_wrap(s):
-    return 'resource/quest/' + s + '.png'
+tag_map = collections.defaultdict(str)
+tag_map["noodle"] = [["town", "noodle2", 11, 11]]
+
+warp_map = { }
+warp_map["w1"] = ["noodle", 5, 5]
+
+def img_wrap(s, depth):
+    return '<img src="resource/quest/' + s + '.png" class="pa" style="z-index: %s" />' % str(depth)
 
 def js_wrap(s):
     return '<script type="text/javascript">' + s + '</script>'
@@ -93,14 +98,17 @@ def gen_table_html(cells):
             cell = cells[y][x]
 
             s += '<td><div class="pr">'
-            s += '<img src="' + img_wrap(cell[0]) + '" class="z0" />'
-
+            s += img_wrap(cell[0], 0)
+            
+            depth = 1
             for other in cell[1:]:
                 if other[0] == 'p':
-                    s += '<img src="' + img_wrap(person_map[other][0]) + '" class="pa" style="z-index: 2" />'
+                    s += img_wrap(person_map[other][0], depth)
+                elif other[0] != 'w':
+                    s += img_wrap(other, depth)
 
             if x == 5 and y == 5:
-                s += '<img src="' + img_wrap('player') + '" class="pa" style="z-index: 100" />'
+                s += img_wrap('player', 100)
 
             s += '</div></td>'
 
@@ -162,10 +170,36 @@ class PoozleQuestMoveHandler(webapp2.RequestHandler):
 
             quest.xpos += dir_array[move_dir][0]
             quest.ypos += dir_array[move_dir][1]
+            cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+
+            cell = tile_map[quest.mmap][quest.ypos][quest.xpos]
+            block = False
+
+            for other in cell:
+                if other[0] == 'w':
+                    quest.mmap, quest.ypos, quest.xpos = warp_map[other]
+                    cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+                elif other[0] == 'p' or other in solid_list:
+                    block = True
+
+            if not block and (quest.xpos <= 4 or quest.ypos <= 4 or quest.ypos >= len(tile_map[quest.mmap])-6 or quest.xpos >= len(tile_map[quest.mmap][quest.ypos])-6):
+                block = True
+                for tag in tag_map[quest.mmap]:
+                    if tag[0] == 'town':
+                        block = False
+                        quest.mmap, quest.ypos, quest.xpos = tag[1], tag[2], tag[3]
+                        quest.xpos += dir_array[move_dir][0]
+                        quest.ypos += dir_array[move_dir][1]
+
+                        cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+                
+            if block:
+                quest.xpos -= dir_array[move_dir][0]
+                quest.ypos -= dir_array[move_dir][1]
+                cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 
             quest.put()
             
-            cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
             self.render(cells)
 
 class PoozleQuestActionHandler(webapp2.RequestHandler):
