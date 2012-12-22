@@ -37,34 +37,7 @@ jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), '
 jinja_env = jinja2.Environment(autoescape=True,
                                loader = jinja_loader)
 
-area_map = {}
-area_map["noodle"] = "Noodle Village"
-area_map["noodle2"] = "Noodle Peninsula"
-
-solid_list = ["Ocean", "Mountain", "Rock"]
-
-length_map = { }
-length_map["noodle"] = (15, 15)
-
-person_map = { }
-person_map["p1"] = ["misc_man1", "Charlem", "talk"]
-
-talk_choice_map = collections.defaultdict(dict)
-talk_choice_map["p1"]["village"] = 'say: "What can you tell me about the village?"'
-talk_choice_map["p1"]["area"] = 'say: "What can you tell me about the area?"'
-
-talk_dialog_map = collections.defaultdict(dict)
-talk_dialog_map["p1"][""] = "Hello, $NAME!  How are you?"
-talk_dialog_map["p1"]["village"] = "Noodle Village has been a small farming village for over a century.  Many of us grow fruits and take them to market in Lynbrook, a city to the south."
-talk_dialog_map["p1"]["area"] = "Well, for starters, we're in Noodle Village!  It's on the northern tip of the continent!  Also, it's surrounded by mountains on all sides, and a tunnel to the south is the only way to get in or out."
-
-tag_map = collections.defaultdict(str)
-tag_map["noodle"] = [["town", "noodle2", 11, 11]]
-
-warp_map = { }
-warp_map["w1"] = ["noodle", 5, 5]
-
-def img_wrap(s, depth):
+def img_wrap(s, depth=0):
     return '<img src="resource/quest/' + s + '.png" class="pa" style="z-index: %s" />' % str(depth)
 
 def js_wrap(s):
@@ -89,6 +62,36 @@ def gen_result_html(target, action, subaction):
                     s += js_wrap('document.getElementById("btn_%s_%s").addEventListener("click", function() { action("%s", "talk", "%s"); });' % (target, typ_talk, target, typ_talk)) + '<br>'
 
     return s
+
+def gen_main_html(uid, cells):
+    quest = quest_util.get_uqinfo(uid)
+
+    if quest.in_battle:
+        return gen_combat_html(uid)
+
+    return gen_table_html(cells)
+
+def gen_combat_html(uid):
+    s = ''
+
+    quest = quest_util.get_uqinfo(uid)
+    bid = quest.battle_id
+
+    query = db.Query(PoozleQuestUnitBattle)
+    query.filter('bid =', bid)
+
+    p = []
+    e = []
+
+    for unit in query:
+        u = quest_util.get_unit_by_id(unit.uid)
+        if u.is_player:
+            p += [u]
+        else:
+            e += [u]
+
+    template = jinja_env.get_template('battle.html')
+    return template.render(player_units = p, enemy_units = e).replace('\t', '').replace('\n', '')
 
 def gen_table_html(cells):
     s = '<table width="440" border="0" cellpadding="0" cellspacing="0">'
@@ -135,9 +138,9 @@ def gen_action_html(cells):
 class PoozleQuestHandler(webapp2.RequestHandler):
   # this is distinct from puzzle quest which is an actual game
 
-    def render(self, cells):
+    def render(self, uid, cells):
       template = jinja_env.get_template('quest.html')
-      self.response.out.write(template.render(result = "", cells = gen_table_html(cells), actions = gen_action_html(cells), logged_in = 'True'))
+      self.response.out.write(template.render(result = "", cells = gen_main_html(uid, cells), actions = gen_action_html(cells), logged_in = 'True'))
 
     def get(self):
         uid = auth_util.auth_into_site(self)
@@ -149,15 +152,22 @@ class PoozleQuestHandler(webapp2.RequestHandler):
 
         cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 
-        self.render(cells)
+        self.render(uid, cells)
 
 class PoozleQuestMoveHandler(webapp2.RequestHandler):
     def get(self):
         self.redirect('/pquest')
 
-    def render(self, cells):
+    def render(self, uid, cells, in_battle = False):
         template = jinja_env.get_template('quest.html')
-        self.response.out.write('{"table":"' + gen_table_html(cells).replace('"', '\\"') + '", "action":"' + gen_action_html(cells).replace('"', '\\"') + '", "result":""}')
+        to_write = { }
+        to_write['table'] = gen_main_html(uid, cells).replace('"', '\\"')
+        to_write['action'] = gen_action_html(cells).replace('"', '\\"')
+        to_write['result'] = ''
+        to_write['nav'] = '' if in_battle == False else 'hide'
+
+        out_str = '{' + ','.join(['"' + k + '":"' + to_write[k] + '"' for k in to_write]) + '}'
+        self.response.out.write(out_str)
 
     def post(self):
         uid = auth_util.auth_into_site(self)
@@ -198,42 +208,88 @@ class PoozleQuestMoveHandler(webapp2.RequestHandler):
                 quest.ypos -= dir_array[move_dir][1]
                 cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 
+            else:
+                # combat!
+                if quest.mmap in prob_encounter and random.random() <= prob_encounter[quest.mmap]:
+                    pqb = PoozleQuestBattle()
+                    pqb.put()
+
+                    quest_util.create_units_for_battle(quest.mmap, pqb.key().id())
+
+                    quest.in_battle = True
+                    quest.battle_id = pqb.key().id()
+
             quest.put()
             
-            self.render(cells)
+            self.render(uid, cells, quest.in_battle)
 
 class PoozleQuestActionHandler(webapp2.RequestHandler):
     def get(self):
         self.redirect('/pquest')
 
-    def render(self, cells, target, action, subaction):
+    def render(self, uid, cells, target, action, subaction):
         result_html = ''
         if action != 'talk':
-            result_html = gen_table_html(cells)
+            result_html = gen_main_html(uid, cells)
 
-        self.response.out.write('{"table":"' + result_html.replace('"', '\\"') + '", "action":"' + gen_action_html(cells).replace('"', '\\"') + '", "result":"' + gen_result_html(target, action, subaction).replace('"', '\\"') + '"}')
+        to_write = { }
+        to_write['table'] = result_html.replace('"', '\\"')
+        to_write['action'] = gen_action_html(cells).replace('"', '\\"')
+        to_write['result'] = gen_result_html(target, action, subaction).replace('"', '\\"')
+
+        out_str = '{' + ','.join(['"' + k + '":"' + to_write[k] + '"' for k in to_write]) + '}'
+        self.response.out.write(out_str)
+    
+    def action(self, uid):
+        target = self.request.get('target')
+        action_type = self.request.get('type')
+        action_subtype = self.request.get('subtype')
+        found_person = False
+
+        cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+
+        for y in [4, 5, 6]:
+            for x in [4, 5, 6]:
+                cell = cells[y][x]
+
+                for other in cell[1:]:
+                    if other[0] == 'p' and other == target:
+                        # person handler
+                        found_person = True
+                        self.render(uid, cells, target, action_type, action_subtype)
+        
+        if not found_person:
+            self.response.out.write("")
+
+    def battle_action(self, uid):
+        target = self.request.get('target')
+        action = self.request.get('action')
+        
+        quest = quest_util.get_uqinfo(uid)
+        bid = quest.battle_id
+
+        u = quest_util.current_turn(bid)
+
+        query = db.Query(PoozleQuestUnitBattle)
+        query.filter('bid =', bid)
+        query.order('uid')
+        
+        want_players = not quest_util.get_unit_by_id(u).is_player
+        target = [quest_util.get_unit_by_id(k.uid) for k in query if quest_util.get_unit_by_id(k.uid).is_player == want_players][target]
+        print >> sys.stdout, str(target) + '!!!'
+        
+        if u.is_player:
+            quest_util.apply_spell(u, target, action)
+        else:
+            quest_util.apply_spell(u, target, 'attack')
 
     def post(self):
         uid = auth_util.auth_into_site(self)
 
         if uid:
             quest = quest_util.get_uqinfo(uid)
-            target = self.request.get('target')
-            action_type = self.request.get('type')
-            action_subtype = self.request.get('subtype')
-            found_person = False
+            if quest.in_battle:
+                battle_action(self, uid)
+            else:
+                action(self, uid)
 
-            cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
-
-            for y in [4, 5, 6]:
-                for x in [4, 5, 6]:
-                    cell = cells[y][x]
-
-                    for other in cell[1:]:
-                        if other[0] == 'p' and other == target:
-                            # person handler
-                            found_person = True
-                            self.render(cells, target, action_type, action_subtype)
-        
-        if not found_person:
-            self.response.out.write("")

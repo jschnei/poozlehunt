@@ -66,3 +66,31 @@ class PoozleQuest(db.Model):
   mmap = db.StringProperty(required=True)
   xpos = db.IntegerProperty(required=True)
   ypos = db.IntegerProperty(required=True)
+
+  in_battle = db.BooleanProperty(required=True, default=False)
+  battle_id = db.IntegerProperty()
+
+class PoozleQuestUnit(db.Model):
+  # represents a generic unit
+  name = db.StringProperty(required=True)
+  atk = db.IntegerProperty(required=True)
+  pdef = db.IntegerProperty(required=True)
+  mag = db.IntegerProperty(required=True)
+  mdef = db.IntegerProperty(required=True)
+  spd = db.IntegerProperty(required=True)
+
+  hp = db.IntegerProperty(required=True)
+  mp = db.IntegerProperty(required=True)
+  maxhp = db.IntegerProperty(required=True)
+  maxmp = db.IntegerProperty(required=True)
+
+  is_player = db.BooleanProperty(required=True, default=False)
+
+  time_until_turn = db.FloatProperty()
+
+class PoozleQuestBattle(db.Model):
+  turn_uid = db.IntegerProperty()
+
+class PoozleQuestUnitBattle(db.Model):
+  uid = db.IntegerProperty(required=True)
+  bid = db.IntegerProperty(required=True)

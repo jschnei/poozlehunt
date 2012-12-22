@@ -7,10 +7,19 @@
 </style>
 
 <script language="javascript" type="text/javascript">
+    var battle_target = 1;
     function updateDisplayPane(response) {
         r = $.parseJSON(response);
         if (r.table != "") {
             $("#display_pane").html(r.table);
+        }
+        if (r.nav != "") {
+            if (r.nav == "hide") {
+                $("#nav_pane").hide();
+            }
+            else {
+                $("#nav_pane").show();
+            }
         }
 
         $("#action_pane").html(r.action);
@@ -25,6 +34,9 @@
         $.post('/pquest/action',
                 {target: target, type: type, subtype: subtype},
                 updateDisplayPane);
+    }
+    function battle_action(type) {
+        action(battle_target, type, "");
     }
 </script>
 
@@ -50,7 +62,9 @@
         </div>
         </td>
         <td valign="top">
+            <div id="nav_pane">
             <img src="resource/quest/nav.gif" width="120" height="120" usemap="#nav" border="0" />
+            </div>
             <div id="action_pane">
             {{ actions | safe }}
             </div>
