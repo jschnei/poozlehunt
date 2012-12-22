@@ -1,3 +1,12 @@
+<script type="text/javascript">
+var target = 0;
+function setTarget(trg) {
+    $("#trg" + battle_target).css("visibility", "hidden");
+    $("#trg" + trg).css("visibility", "visible");
+
+    battle_target = trg;
+}
+</script>
 <table border="0" cellpadding="0" cellspacing="0">
     <tr>
         <td align="center" valign="top">
@@ -5,7 +14,14 @@
             <tr>
                 {% for e in enemy_units %}
                 <td align="center" valign="top">
-                    <img src="/resource/quest/enemy/{{e.name}}.png" /><br>
+		    <div id="e_{{loop.index0}}" class="br">
+		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+                    <img src="/resource/quest/enemy/{{e.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+		    <img src="/resource/quest/target.png" id="trg{{loop.index0}}" class="pa" style="z-index: 8; visibility: hidden;" />
+		    </a>
+		    </div>
+		    <br>
                     {{e.name}}
                     <br>
                     {{e.hp}} / {{e.maxhp}}</td> 

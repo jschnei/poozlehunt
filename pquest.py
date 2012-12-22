@@ -63,6 +63,9 @@ def gen_result_html(target, action, subaction):
 
     return s
 
+def debug(s):
+    print >> sys.stderr, str(s)
+
 def gen_main_html(uid, cells):
     quest = quest_util.get_uqinfo(uid)
 
@@ -233,9 +236,11 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
             result_html = gen_main_html(uid, cells)
 
         to_write = { }
-        to_write['table'] = result_html.replace('"', '\\"')
-        to_write['action'] = gen_action_html(cells).replace('"', '\\"')
-        to_write['result'] = gen_result_html(target, action, subaction).replace('"', '\\"')
+	to_write['table'] = result_html.replace('"', '\\"')
+	to_write['action'] = gen_action_html(cells).replace('"', '\\"')
+
+	if action != '' and subaction != '':
+	    to_write['result'] = gen_result_html(target, action, subaction).replace('"', '\\"')
 
         out_str = '{' + ','.join(['"' + k + '":"' + to_write[k] + '"' for k in to_write]) + '}'
         self.response.out.write(out_str)
@@ -245,6 +250,8 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
         action_type = self.request.get('type')
         action_subtype = self.request.get('subtype')
         found_person = False
+
+	quest = quest_util.get_uqinfo(uid)
 
         cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 
@@ -262,26 +269,35 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
             self.response.out.write("")
 
     def battle_action(self, uid):
+	quest = quest_util.get_uqinfo(uid)
+
+        cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+
         target = self.request.get('target')
         action = self.request.get('action')
         
         quest = quest_util.get_uqinfo(uid)
         bid = quest.battle_id
 
-        u = quest_util.current_turn(bid)
+        u = quest_util.get_unit_by_id(quest_util.current_turn(bid))
 
         query = db.Query(PoozleQuestUnitBattle)
         query.filter('bid =', bid)
         query.order('uid')
+	
+	target_list = [quest_util.get_unit_by_id(t.uid) for t in query]
+	target_list = [t for t in target_list if t.is_player == False]
         
-        want_players = not quest_util.get_unit_by_id(u).is_player
-        target = [quest_util.get_unit_by_id(k.uid) for k in query if quest_util.get_unit_by_id(k.uid).is_player == want_players][target]
-        print >> sys.stdout, str(target) + '!!!'
+        want_players = u.is_player
+	target = int(target)
         
         if u.is_player:
-            quest_util.apply_spell(u, target, action)
+            quest_util.apply_spell(u, target_list[target], action)
         else:
-            quest_util.apply_spell(u, target, 'attack')
+            quest_util.apply_spell(u, target_list[target], 'attack')
+
+        cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+	self.render(uid, cells, '', '', '')
 
     def post(self):
         uid = auth_util.auth_into_site(self)
@@ -289,7 +305,6 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
         if uid:
             quest = quest_util.get_uqinfo(uid)
             if quest.in_battle:
-                battle_action(self, uid)
+                self.battle_action(uid)
             else:
                 action(self, uid)
-
