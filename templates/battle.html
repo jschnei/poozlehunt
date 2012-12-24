@@ -15,9 +15,13 @@ function setTarget(trg) {
                 {% for e in enemy_units %}
                 <td align="center" valign="top">
 		    <div id="e_{{loop.index0}}" class="br">
+		    {% if e.hp > 0 %}
 		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+		    {% endif %}
                     <img src="/resource/quest/enemy/{{e.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    {% if e.hp > 0 %}
 		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+		    {% endif %}
 		    <img src="/resource/quest/target.png" id="trg{{loop.index0}}" class="pa" style="z-index: 8; visibility: hidden;" />
 		    </a>
 		    </div>
@@ -38,12 +42,19 @@ function setTarget(trg) {
             <tr>
         <td>
             current player<br>
+	    {% if in_progress %}
             <a id="btn_atk" href="javascript:;">attack!</a><br>
             <a id="btn_flee" href="javascript:;">flee!</a><br>
             <script type="text/javascript">
                 document.getElementById("btn_atk").addEventListener("click", function() { battle_action("attack"); });
                 document.getElementById("btn_flee").addEventListener("click", function() { battle_action("flee"); });
             </script>
+	    {% else %}
+	    <a id="btn_end" href="javascript:;">end fight</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_end").addEventListener("click", function() { battle_action("end"); });
+	    </script>
+	    {% endif %}
         </td>
         <td width="1" bgcolor="#909090"></td>
         <td valign="top">

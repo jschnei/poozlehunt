@@ -4,6 +4,8 @@ from models import *
 
 import user_util
 import random
+import collections
+import sys
 
 from pquest_tiles import *
 
@@ -18,6 +20,15 @@ def get_uqinfo(uid, create_if_none=True):
                         xpos = 7,
                         ypos = 7,
                         in_battle=False)
+
+      player_unit = PoozleQuestUnit(name = 'player_fight',
+				    atk = 11, pdef = 3, mag = 7, mdef = 3, spd = 6, hp = 35, mp = 7, maxhp = 35, maxmp = 7, is_player = True)
+      
+      ret.put() 
+      player_unit.put()
+
+      unit_data = PoozleQuestPCData(qid = ret.key().id(), uid = player_unit.key().id(), in_party = True)
+      unit_data.put()
 
   return ret
 
@@ -53,6 +64,22 @@ def create_unit(s):
 
 def get_unit_by_id(uid):
     return PoozleQuestUnit.get_by_id(uid)
+
+def get_units_of_type(bid, player_units = True):
+    query = db.Query(PoozleQuestUnitBattle)
+    query.filter('bid =', bid)
+    query.order('uid')
+
+    return [u.uid for u in query if get_unit_by_id(u.uid).is_player == player_units]
+
+def add_player_units_to_battle(qid, bid):
+    query = db.Query(PoozleQuestPCData)
+    query.filter('qid =', qid)
+
+    for q in query:
+	ub_link = PoozleQuestUnitBattle(uid = q.uid,
+					bid = bid)
+	ub_link.put()
 
 def add_unit_to_battle(uid, bid):
     ub_link = PoozleQuestUnitBattle(uid = uid,
@@ -122,3 +149,29 @@ def apply_spell(source, target, spell):
             target.hp = 0
 
     target.put()
+
+# loot-specific spells
+
+def select_items(enemies):
+    return collections.Counter([item for enemy in enemies for item in select_item(enemy)]).items()
+
+def select_item(enemy):
+    arr = []
+
+    for u in defeat_stats[enemy]['spoils']:
+        if random.random() <= u[0]:
+            arr += [select_item_by_name(u[1])]
+
+    return arr
+
+def select_item_by_name(item):
+    # shouldn't be called directly
+
+    if item in spoil_groups:
+	den = 1.0
+	for n in spoil_groups[item]:
+	    if random.random() <= (n[0] / den):
+		return select_item_by_name(n[1])
+	    den -= n[0]
+
+    return item

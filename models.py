@@ -70,6 +70,9 @@ class PoozleQuest(db.Model):
   in_battle = db.BooleanProperty(required=True, default=False)
   battle_id = db.IntegerProperty()
 
+  in_transition = db.BooleanProperty(required=True, default=False)
+  transition_text = db.StringProperty()
+
 class PoozleQuestUnit(db.Model):
   # represents a generic unit
   name = db.StringProperty(required=True)
@@ -94,3 +97,10 @@ class PoozleQuestBattle(db.Model):
 class PoozleQuestUnitBattle(db.Model):
   uid = db.IntegerProperty(required=True)
   bid = db.IntegerProperty(required=True)
+
+class PoozleQuestPCData(db.Model):
+  # information about player controlled characters
+  qid = db.IntegerProperty(required=True)
+  uid = db.IntegerProperty(required=True)
+
+  in_party = db.BooleanProperty(required=True, default=False)

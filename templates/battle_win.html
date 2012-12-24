@@ -1,0 +1,14 @@
+You won the fight!
+<br>
+<img src="/resource/quest/player_fight.png" />
+<br>
+You gain <b>{{ xp }}</b> experience!
+<br>
+You gain <b>{{ gold }}</b> gold!
+<br>
+{% for item, number in items %}
+You found {{ number }} {{ item }} {% if number > 1 %}s{% endif %}!
+<br>
+{% endfor %}
+
+<a href="javascript:;">return to map</a>

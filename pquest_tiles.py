@@ -30,8 +30,17 @@ prob_encounter = { "noodle2" : 1.0 }
 # enemy information
 
 unit_stats = { }
-unit_stats['wolf'] = {'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':8, 'maxhp':22, 'maxmp':0}
-unit_stats['tiger'] = {'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':6, 'maxhp':26, 'maxmp':0}
+unit_stats['wolf'] = {'lvl':1, 'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':8, 'maxhp':22, 'maxmp':0}
+unit_stats['tiger'] = {'lvl':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':6, 'maxhp':26, 'maxmp':0}
+
+# loot information
+
+defeat_stats = { }
+defeat_stats['wolf'] = {'xp':9, 'gold':2, 'spoils': [[0.25, 'small']] }
+defeat_stats['tiger'] = {'xp':10, 'gold':2, 'spoils': [[0.25, 'small']] }
+
+spoil_groups = { }
+spoil_groups['small'] = [[0.5,'h_potion_s'], [0.5,'m_potion_s']]
 
 # person information
 

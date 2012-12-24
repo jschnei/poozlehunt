@@ -80,21 +80,13 @@ def gen_combat_html(uid):
     quest = quest_util.get_uqinfo(uid)
     bid = quest.battle_id
 
-    query = db.Query(PoozleQuestUnitBattle)
-    query.filter('bid =', bid)
+    p = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, True)]
+    e = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, False)]
 
-    p = []
-    e = []
-
-    for unit in query:
-        u = quest_util.get_unit_by_id(unit.uid)
-        if u.is_player:
-            p += [u]
-        else:
-            e += [u]
+    in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
 
     template = jinja_env.get_template('battle.html')
-    return template.render(player_units = p, enemy_units = e).replace('\t', '').replace('\n', '')
+    return template.render(player_units = p, enemy_units = e, in_progress = in_progress).replace('\t', '').replace('\n', '')
 
 def gen_table_html(cells):
     s = '<table width="440" border="0" cellpadding="0" cellspacing="0">'
@@ -218,6 +210,7 @@ class PoozleQuestMoveHandler(webapp2.RequestHandler):
                     pqb.put()
 
                     quest_util.create_units_for_battle(quest.mmap, pqb.key().id())
+		    quest_util.add_player_units_to_battle(quest.key().id(), pqb.key().id())
 
                     quest.in_battle = True
                     quest.battle_id = pqb.key().id()
@@ -274,7 +267,7 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
         cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 
         target = self.request.get('target')
-        action = self.request.get('action')
+        action = self.request.get('type')
         
         quest = quest_util.get_uqinfo(uid)
         bid = quest.battle_id
@@ -285,19 +278,25 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
         query.filter('bid =', bid)
         query.order('uid')
 	
-	target_list = [quest_util.get_unit_by_id(t.uid) for t in query]
-	target_list = [t for t in target_list if t.is_player == False]
-        
+        p = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, True)]
+	e = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, False)]
         want_players = u.is_player
 	target = int(target)
-        
-        if u.is_player:
-            quest_util.apply_spell(u, target_list[target], action)
-        else:
-            quest_util.apply_spell(u, target_list[target], 'attack')
+	
+	in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
 
-        cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
-	self.render(uid, cells, '', '', '')
+	if in_progress:	 
+	    if u.is_player:
+		quest_util.apply_spell(u, e[target], action)
+	    else:
+		quest_util.apply_spell(u, e[target], 'attack')
+
+	    cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
+	    self.render(uid, cells, '', '', '')
+	else:
+	    if action == 'end':
+		items = quest_util.select_items([n.name for n in e])
+		debug(items)
 
     def post(self):
         uid = auth_util.auth_into_site(self)
@@ -307,4 +306,4 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
             if quest.in_battle:
                 self.battle_action(uid)
             else:
-                action(self, uid)
+                self.action(uid)
