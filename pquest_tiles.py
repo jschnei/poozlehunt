@@ -30,8 +30,8 @@ prob_encounter = { "noodle2" : 1.0 }
 # enemy information
 
 unit_stats = { }
-unit_stats['wolf'] = {'lvl':1, 'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':8, 'maxhp':22, 'maxmp':0}
-unit_stats['tiger'] = {'lvl':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':6, 'maxhp':26, 'maxmp':0}
+unit_stats['wolf'] = {'lvl':1, 'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':3.8, 'mspd':1., 'maxhp':22, 'maxmp':0}
+unit_stats['tiger'] = {'lvl':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':3.6, 'mspd':1., 'maxhp':26, 'maxmp':0}
 
 # loot information
 
@@ -41,6 +41,12 @@ defeat_stats['tiger'] = {'xp':10, 'gold':2, 'spoils': [[0.25, 'small']] }
 
 spoil_groups = { }
 spoil_groups['small'] = [[0.5,'h_potion_s'], [0.5,'m_potion_s']]
+
+# item information
+
+item_info = { }
+item_info['h_potion_s'] = {'name': 'Small Healing Potion', 'desc': 'Restores 15 health.', 'use_ooc': True, 'buffs': {'heal': 15} }
+item_info['m_potion_s'] = {'name': 'Small Mana Potion', 'desc': 'Restores 10 mana.', 'use_ooc': True, 'buffs': {'mheal': 10} }
 
 # person information
 

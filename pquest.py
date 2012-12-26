@@ -85,6 +85,9 @@ def gen_combat_html(uid):
 
     in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
 
+    if quest.in_transition:
+	return quest.transition_text
+
     template = jinja_env.get_template('battle.html')
     return template.render(player_units = p, enemy_units = e, in_progress = in_progress).replace('\t', '').replace('\n', '')
 
@@ -214,6 +217,8 @@ class PoozleQuestMoveHandler(webapp2.RequestHandler):
 
                     quest.in_battle = True
                     quest.battle_id = pqb.key().id()
+		    
+		    quest_util.initialize_turns(quest.battle_id)
 
             quest.put()
             
@@ -280,23 +285,49 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
 	
         p = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, True)]
 	e = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, False)]
-        want_players = u.is_player
-	target = int(target)
-	
-	in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
 
+	target = int(target)
+	in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
+	
 	if in_progress:	 
 	    if u.is_player:
 		quest_util.apply_spell(u, e[target], action)
 	    else:
-		quest_util.apply_spell(u, e[target], 'attack')
+		quest_util.apply_spell(u, p[target], 'attack')
 
 	    cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
 	    self.render(uid, cells, '', '', '')
+
 	else:
-	    if action == 'end':
+	    to_write = { }
+	    if not quest.in_transition and not in_progress and action == 'end':
 		items = quest_util.select_items([n.name for n in e])
-		debug(items)
+		items = [(item_info[k[0]]['name'], k[1]) for k in items]
+
+		template = jinja_env.get_template('battle_win.html')
+
+		quest.transition_text = template.render(xp = 14, gold = 10, items = items).replace('\t', '').replace('\n', '')
+		to_write['table'] = quest.transition_text.replace('"', '\\"')
+
+		quest.in_transition = True
+
+		quest.put()
+
+	    elif quest.in_transition and action == 'map_return':
+		quest.in_battle = False
+		quest.in_transition = False
+		quest.transition_text = ''
+
+		quest_util.delete_battle(bid)
+		
+		quest.put()
+
+		template = jinja_env.get_template('quest.html')
+
+		to_write['table'] = gen_main_html(uid, cells).replace('"', '\\"')
+
+	    out_str = '{' + ','.join(['"' + k + '":"' + to_write[k] + '"' for k in to_write]) + '}'
+	    self.response.out.write(out_str)
 
     def post(self):
         uid = auth_util.auth_into_site(self)

@@ -22,7 +22,7 @@ def get_uqinfo(uid, create_if_none=True):
                         in_battle=False)
 
       player_unit = PoozleQuestUnit(name = 'player_fight',
-				    atk = 11, pdef = 3, mag = 7, mdef = 3, spd = 6, hp = 35, mp = 7, maxhp = 35, maxmp = 7, is_player = True)
+				    atk = 11, pdef = 3, mag = 7, mdef = 3, spd = 2.8, mspd = 4.0, hp = 35, mp = 7, maxhp = 35, maxmp = 7, is_player = True)
       
       ret.put() 
       player_unit.put()
@@ -54,6 +54,7 @@ def create_unit(s):
                         mag = unit_stats[s]['mag'],
                         mdef = unit_stats[s]['mdef'],
                         spd = unit_stats[s]['spd'],
+			mspd = unit_stats[s]['mspd'],
                         hp = unit_stats[s]['maxhp'],
                         mp = unit_stats[s]['maxmp'],
                         maxhp = unit_stats[s]['maxhp'],
@@ -129,6 +130,7 @@ def advance_turn(bid):
     min_unit = None
     for q in query:
         unit = get_unit_by_id(q.uid)
+	print >> sys.stderr, unit.time_until_turn
         if min_unit is None or unit.time_until_turn < min_unit.time_until_turn:
             min_unit = unit
 
@@ -142,6 +144,15 @@ def advance_turn(bid):
         unit.time_until_turn -= r
         unit.put()
 
+def initialize_turns(bid):
+    for u in get_units_of_type(bid, True) + get_units_of_type(bid, False):
+	unit = get_unit_by_id(u)
+	unit.time_until_turn = unit.spd
+
+	unit.put()
+
+    advance_turn(bid)
+
 def apply_spell(source, target, spell):
     if spell == 'attack':
         target.hp -= source.atk
@@ -149,6 +160,20 @@ def apply_spell(source, target, spell):
             target.hp = 0
 
     target.put()
+
+def delete_battle(bid):
+    PoozleQuestBattle.get_by_id(bid).delete()
+
+    q = db.Query(PoozleQuestUnitBattle)
+    print >> sys.stderr, bid
+    q.filter('bid =', bid)
+    for u in q:
+	uid = u.uid
+	print >> sys.stderr, uid
+	if not get_unit_by_id(uid).is_player:
+	    get_unit_by_id(uid).delete()
+
+	u.delete()
 
 # loot-specific spells
 

@@ -80,7 +80,8 @@ class PoozleQuestUnit(db.Model):
   pdef = db.IntegerProperty(required=True)
   mag = db.IntegerProperty(required=True)
   mdef = db.IntegerProperty(required=True)
-  spd = db.IntegerProperty(required=True)
+  spd = db.FloatProperty(required=True)
+  mspd = db.FloatProperty(required=True)
 
   hp = db.IntegerProperty(required=True)
   mp = db.IntegerProperty(required=True)

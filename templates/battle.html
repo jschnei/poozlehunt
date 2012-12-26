@@ -28,7 +28,10 @@ function setTarget(trg) {
 		    <br>
                     {{e.name}}
                     <br>
-                    {{e.hp}} / {{e.maxhp}}</td> 
+                    {{e.hp}} / {{e.maxhp}}
+		    <br>
+		    next turn: {% if e.time_until_turn > 0.05 %} {{e.time_until_turn}} secs {% else %} now! {% endif %}
+		    </td> 
                 {% endfor %}
             </tr>
         </table>
@@ -80,4 +83,25 @@ function setTarget(trg) {
                 </tr>
             </table>
     </td></tr>
+    <tr>
+        <td align="center" valign="top">
+        <table border="0" cellpadding="5" cellspacing="0">
+            <tr>
+                {% for p in player_units %}
+                <td align="center" valign="top">
+		    <div id="p_{{loop.index0}}" class="br">
+                    <img src="/resource/quest/{{p.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    </div>
+		    <br>
+                    {{p.name}}
+                    <br>
+                    {{p.hp}} / {{p.maxhp}}
+		    <br>
+		    next turn: {% if p.time_until_turn > 0.05 %} {{p.time_until_turn}} {% else %} now! {% endif %}
+		    </td> 
+                {% endfor %}
+            </tr>
+        </table>
+    </td>
+    </tr>
 </table>
