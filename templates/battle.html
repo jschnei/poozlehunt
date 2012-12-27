@@ -1,10 +1,10 @@
 <script type="text/javascript">
-var target = 0;
 function setTarget(trg) {
     $("#trg" + battle_target).css("visibility", "hidden");
     $("#trg" + trg).css("visibility", "visible");
 
     battle_target = trg;
+    manual = true;
 }
 </script>
 <table border="0" cellpadding="0" cellspacing="0">
@@ -30,7 +30,7 @@ function setTarget(trg) {
                     <br>
                     {{e.hp}} / {{e.maxhp}}
 		    <br>
-		    next turn: {% if e.time_until_turn > 0.05 %} {{e.time_until_turn}} secs {% else %} now! {% endif %}
+		    {% if e.hp > 0 %} next turn: {% if e.time_until_turn > 0.05 %} {{e.time_until_turn}} secs{% else %} now! {% endif %} {% endif %}
 		    </td> 
                 {% endfor %}
             </tr>
@@ -45,13 +45,18 @@ function setTarget(trg) {
             <tr>
         <td>
             current player<br>
-	    {% if in_progress %}
+	    {% if move == "player" %}
             <a id="btn_atk" href="javascript:;">attack!</a><br>
             <a id="btn_flee" href="javascript:;">flee!</a><br>
             <script type="text/javascript">
                 document.getElementById("btn_atk").addEventListener("click", function() { battle_action("attack"); });
                 document.getElementById("btn_flee").addEventListener("click", function() { battle_action("flee"); });
             </script>
+	    {% elif move == "enemy" %}
+	    <a id="btn_next" href="javascript:;">next turn</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_next").addEventListener("click", function() { battle_action("next"); });
+	    </script>
 	    {% else %}
 	    <a id="btn_end" href="javascript:;">end fight</a><br>
 	    <script type="text/javascript">
@@ -97,7 +102,7 @@ function setTarget(trg) {
                     <br>
                     {{p.hp}} / {{p.maxhp}}
 		    <br>
-		    next turn: {% if p.time_until_turn > 0.05 %} {{p.time_until_turn}} {% else %} now! {% endif %}
+		    {% if p.hp > 0 %} next turn: {% if p.time_until_turn > 0.05 %} {{p.time_until_turn}} secs{% else %} now! {% endif %} {% endif %}
 		    </td> 
                 {% endfor %}
             </tr>
@@ -105,3 +110,12 @@ function setTarget(trg) {
     </td>
     </tr>
 </table>
+<script type="text/javascript">
+if ({{target}} != battle_target) {
+    battle_target = {{target}};
+    manual = false;
+}
+if (manual) {
+    setTarget(battle_target);
+}
+</script>

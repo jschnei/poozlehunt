@@ -130,8 +130,7 @@ def advance_turn(bid):
     min_unit = None
     for q in query:
         unit = get_unit_by_id(q.uid)
-	print >> sys.stderr, unit.time_until_turn
-        if min_unit is None or unit.time_until_turn < min_unit.time_until_turn:
+        if (min_unit is None or unit.time_until_turn < min_unit.time_until_turn) and unit.hp > 0:
             min_unit = unit
 
     r = min_unit.time_until_turn
@@ -141,7 +140,8 @@ def advance_turn(bid):
 
     for q in query:
         unit = get_unit_by_id(q.uid)
-        unit.time_until_turn -= r
+	if unit.hp > 0:
+	    unit.time_until_turn -= r
         unit.put()
 
 def initialize_turns(bid):
@@ -165,11 +165,10 @@ def delete_battle(bid):
     PoozleQuestBattle.get_by_id(bid).delete()
 
     q = db.Query(PoozleQuestUnitBattle)
-    print >> sys.stderr, bid
     q.filter('bid =', bid)
+
     for u in q:
 	uid = u.uid
-	print >> sys.stderr, uid
 	if not get_unit_by_id(uid).is_player:
 	    get_unit_by_id(uid).delete()
 

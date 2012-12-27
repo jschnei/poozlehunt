@@ -66,15 +66,15 @@ def gen_result_html(target, action, subaction):
 def debug(s):
     print >> sys.stderr, str(s)
 
-def gen_main_html(uid, cells):
+def gen_main_html(uid, cells, extra = { }):
     quest = quest_util.get_uqinfo(uid)
 
     if quest.in_battle:
-        return gen_combat_html(uid)
+        return gen_combat_html(uid, extra)
 
-    return gen_table_html(cells)
+    return gen_table_html(cells, extra)
 
-def gen_combat_html(uid):
+def gen_combat_html(uid, extra = { }):
     s = ''
 
     quest = quest_util.get_uqinfo(uid)
@@ -82,16 +82,21 @@ def gen_combat_html(uid):
 
     p = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, True)]
     e = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, False)]
+    target = int(extra['target']) if 'target' in extra else 0
 
+    move = 'end'
     in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
+    if in_progress:
+        u = quest_util.get_unit_by_id(quest_util.current_turn(bid))
+	move = 'player' if u.is_player else 'enemy'
 
     if quest.in_transition:
 	return quest.transition_text
 
     template = jinja_env.get_template('battle.html')
-    return template.render(player_units = p, enemy_units = e, in_progress = in_progress).replace('\t', '').replace('\n', '')
+    return template.render(player_units = p, enemy_units = e, move = move, target = target).replace('\t', '').replace('\n', '')
 
-def gen_table_html(cells):
+def gen_table_html(cells, extra = { }):
     s = '<table width="440" border="0" cellpadding="0" cellspacing="0">'
     for y in range(11):
         s += '<tr>'
@@ -228,14 +233,16 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
     def get(self):
         self.redirect('/pquest')
 
-    def render(self, uid, cells, target, action, subaction):
+    def render(self, uid, cells, target, action, subaction, extra = { }):
         result_html = ''
         if action != 'talk':
-            result_html = gen_main_html(uid, cells)
+            result_html = gen_main_html(uid, cells, extra)
 
         to_write = { }
 	to_write['table'] = result_html.replace('"', '\\"')
 	to_write['action'] = gen_action_html(cells).replace('"', '\\"')
+	for item in extra:
+	    to_write[item] = extra[item]
 
 	if action != '' and subaction != '':
 	    to_write['result'] = gen_result_html(target, action, subaction).replace('"', '\\"')
@@ -288,15 +295,34 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
 
 	target = int(target)
 	in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
-	
-	if in_progress:	 
-	    if u.is_player:
+
+	if in_progress:
+	    if u.is_player and action != "next":
+		if e[target].hp == 0:
+		    target = filter(lambda k: k[1].hp > 0, enumerate(e))
+		    target = target[0][0] if target else 0
+
 		quest_util.apply_spell(u, e[target], action)
+
+	    elif not u.is_player and action == "next":
+		action = 'attack'
+		enemy_target = 0
+		quest_util.apply_spell(u, p[enemy_target], action)
+
+	    if action == 'attack':
+		u.time_until_turn += u.spd
 	    else:
-		quest_util.apply_spell(u, p[target], 'attack')
+		u.time_until_turn += u.mspd
+
+	    u.put()
+	    
+	    if u.is_player and e[target].hp == 0:
+		target = filter(lambda k: k[1].hp > 0, enumerate(e))
+		target = target[0][0] if target else 0
 
 	    cells = get_cells(quest.mmap, quest.xpos, quest.ypos)
-	    self.render(uid, cells, '', '', '')
+	    quest_util.advance_turn(bid)
+	    self.render(uid, cells, '', '', '', extra = {'target' : str(target)})
 
 	else:
 	    to_write = { }
