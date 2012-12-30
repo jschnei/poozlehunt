@@ -58,7 +58,8 @@ def create_unit(s):
                         hp = unit_stats[s]['maxhp'],
                         mp = unit_stats[s]['maxmp'],
                         maxhp = unit_stats[s]['maxhp'],
-                        maxmp = unit_stats[s]['maxmp'])
+                        maxmp = unit_stats[s]['maxmp'],
+			level = unit_stats[s]['level'])
 
     n.put()
     return n.key().id()
@@ -108,7 +109,7 @@ def create_units_for_battle(area, bid):
         unit = create_unit(select_unit(area))
         add_unit_to_battle(unit, bid)
 
-# battle-specific spells ... should probably move later
+# battle-specific functions ... should probably move later
 
 def current_turn(bid):
     # return uid whose turn it is
@@ -154,12 +155,43 @@ def initialize_turns(bid):
     advance_turn(bid)
 
 def apply_spell(source, target, spell):
+    msg = ''
+    dmg = 0
+    source_name = source.name if source.is_player else 'the ' + source.name
+    target_name = target.name if target.is_player else 'the ' + target.name
+
     if spell == 'attack':
-        target.hp -= source.atk
-        if target.hp < 0:
-            target.hp = 0
+	dmg = source.atk
+	msg = source_name + ' slashes ' + target_name + ' for <b>%d</b> damage!<br>'
+
+    elif spell == 'rend':
+	dmg = source.atk
+	apply_buff(source.key().id(), target.key().id(), spell, 'rend', 3)
+	msg = source_name + ' rends ' + target_name + ' for <b>%d</b> damage!<br>'
+
+    elif spell == 'charge':
+	msg = source_name + ' charges, readying for a powerful attack!'
+	apply_buff(source.key().id(), source.key().id(), spell, 'charge', 2)
+    
+    source_dmg = dmg
+    
+    for b in get_buffs(source.key().id()):
+	buff = get_buff_by_id(b)
+	if dmg > 0 and 'attack' in buff_stats[buff.buffid]:
+	    msg += buff_effect(b, 'attack', [source, target, dmg])
+
+    dmg += target.dmg_buffer
+    target.dmg_buffer = 0.
+    target.hp -= int(dmg)
+
+    if dmg > 0:
+	msg = msg % dmg
+    if target.hp < 0:
+	target.hp = 0
 
     target.put()
+
+    return msg
 
 def delete_battle(bid):
     PoozleQuestBattle.get_by_id(bid).delete()
@@ -174,7 +206,89 @@ def delete_battle(bid):
 
 	u.delete()
 
-# loot-specific spells
+# buff utility functions
+
+def get_buff_by_id(buffid):
+    return PoozleQuestBuffData.get_by_id(buffid)
+
+def buff_information(uid, sid, buffid):
+    u = get_unit_by_id(uid)
+
+    query = db.Query(PoozleQuestSpellData)
+    query.filter('uid =', uid)
+    query.filter('sid =', sid)
+    spell = query.get()
+
+    if buffid == 'rend':
+	return [int(u.level / (5 - spell.level) / 3 + 1)]
+    if buffid == 'charge':
+	return [-10 + 30 * spell.level]
+
+def apply_buff(uid, tid, sid, buffid, duration):
+    # applying buffid from uid -> tid with spell sid
+
+    buff = PoozleQuestBuffData(uid = tid, buffid = buffid, duration = duration)
+    buff_info = buff_information(uid, sid, buffid)
+    
+    # hack
+    if len(buff_info) > 0:
+	buff.info0 = buff_info[0]
+    if len(buff_info) > 1:
+	buff.info1 = buff_info[1]
+    if len(buff_info) > 2:
+	buff.info2 = buff_info[2]
+    if len(buff_info) > 3:
+	buff.info3 = buff_info[3]
+
+    buff.put()
+
+def buff_effect(buffid, type, params):
+    msg = ''
+    unit, target, tdamage = params
+
+    buff = get_buff_by_id(buffid)
+    for key in buff_stats[buff.buffid][type]:
+	if key == 'damage':
+	    dmg = buff_stats[buff.buffid][type][key](buff)
+	    unit.hp -= dmg
+	    if unit.hp < 0:
+		unit.hp = 0
+	    msg += '%s causes %d damage!<br>' % (buff.buffid, dmg)
+	    unit.put()
+
+	if key == 'tdamage':
+	    dmg = buff_stats[buff.buffid][type][key](buff, tdamage)
+	    target.dmg_buffer += dmg
+	    if target.hp < 0:
+		target.hp = 0
+	    target.put()
+
+    return msg
+
+def get_buffs(uid):
+    query = db.Query(PoozleQuestBuffData)
+    query.filter('uid =', uid)
+    return [q.key().id() for q in query]
+
+# spell utility functions
+
+def get_spell_by_id(sid):
+    return PoozleQuestSpellData.get_by_id(sid)
+
+def get_spells(uid):
+    query = db.Query(PoozleQuestSpellData)
+    query.filter('uid =', uid)
+    return [q.key().id() for q in query]
+
+def wrap_spell_description(str, uid, sid):
+    u = get_unit_by_id(uid)
+    params = []
+
+    if sid == 'rend':
+	params = [int(u.level / (5 - sid.level) / 3 + 1)]
+	
+
+# loot-specific functions
 
 def select_items(enemies):
     return collections.Counter([item for enemy in enemies for item in select_item(enemy)]).items()

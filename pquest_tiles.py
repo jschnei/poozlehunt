@@ -27,11 +27,35 @@ prob_map["noodle2"] = [0.4, 0.1, 0]
 
 prob_encounter = { "noodle2" : 1.0 }
 
+# spell information
+
+spell_stats = { }
+spell_stats['rend'] = {'name':'Rend', 'desc':'Slashes an enemy, dealing normal damage and causing them to bleed %0 damage for 3 turns.'}
+spell_stats['taunt'] = {'name':'Taunt', 'desc':'Taunts all enemies, encouraging them to attack you.'}
+spell_stats['charge'] = {'name':'Charge', 'desc':'Take this turn to charge an attack that will hit hard next turn.'}
+spell_stats['valor'] = {'name':'Valor', 'desc':'Temporarily increases the amount of healing and damage that you receive.'}
+spell_stats['frenzy'] = {'name':'Frenzy', 'desc':'Temporarily allows you to cast most spells without requiring mana.'}
+spell_stats['purify'] = {'name':'Purifying Strike', 'desc':'Slashes an enemy and removes all buffs and debuffs applied to them.'}
+spell_stats['secondwind'] = {'name':'Second Wind', 'desc':'Converts half of your mana into one-third of your maximum life.'}
+spell_stats['heroic'] = {'name':'Heroic Strike', 'desc':'Strike at an enemy with all your fury.  Requires 5 successful hits during this battle and full mana.'}
+
+# buff information
+
+buff_stats = { }
+buff_stats['rend'] = {'name':'Rend', 'desc':'Bleeding for %0 damage each turn.'}
+buff_stats['rend']['turn'] = {'damage': lambda k: k.info0}
+
+buff_stats['charge'] = {'name':'Charge', 'desc':'Pumped up to deal extra damage on the next attack.'}
+buff_stats['charge']['attack'] = {'tdamage': lambda k, dmg: float(k.info0) * dmg / 100}
+
+buff_stats['berserk'] = {'name':'Berserk', 'desc':'Increased damage at low health.'}
+buff_stats['berserk']['attack'] = {'tdamage': lambda k, dmg: float(k.info0) * dmg / 100}
+
 # enemy information
 
 unit_stats = { }
-unit_stats['wolf'] = {'lvl':1, 'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':3.8, 'mspd':1., 'maxhp':22, 'maxmp':0}
-unit_stats['tiger'] = {'lvl':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':3.6, 'mspd':1., 'maxhp':26, 'maxmp':0}
+unit_stats['wolf'] = {'level':1, 'atk':11, 'pdef':6, 'mag':1, 'mdef':6, 'spd':3.8, 'mspd':1., 'maxhp':22, 'maxmp':0}
+unit_stats['tiger'] = {'level':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':3.6, 'mspd':1., 'maxhp':26, 'maxmp':0}
 
 # loot information
 

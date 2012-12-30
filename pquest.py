@@ -83,18 +83,26 @@ def gen_combat_html(uid, extra = { }):
     p = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, True)]
     e = [quest_util.get_unit_by_id(q) for q in quest_util.get_units_of_type(bid, False)]
     target = int(extra['target']) if 'target' in extra else 0
+    spells = []
 
     move = 'end'
     in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
     if in_progress:
         u = quest_util.get_unit_by_id(quest_util.current_turn(bid))
 	move = 'player' if u.is_player else 'enemy'
+	
+	if u.is_player:
+	    spells = [quest_util.get_spell_by_id(k) for k in quest_util.get_spells(u.key().id())]
+	    spells = [(k, spell_stats[k.sid]) for k in spells]
 
     if quest.in_transition:
 	return quest.transition_text
 
+    p = [(k, [(quest_util.get_buff_by_id(r), buff_stats[quest_util.get_buff_by_id(r).buffid]['desc']) for r in quest_util.get_buffs(k.key().id())]) for k in p]
+    e = [(k, [(quest_util.get_buff_by_id(r), buff_stats[quest_util.get_buff_by_id(r).buffid]['desc']) for r in quest_util.get_buffs(k.key().id())]) for k in e]
+
     template = jinja_env.get_template('battle.html')
-    return template.render(player_units = p, enemy_units = e, move = move, target = target).replace('\t', '').replace('\n', '')
+    return template.render(player_units = p, enemy_units = e, move = move, spells = spells, target = target, message = PoozleQuestBattle.get_by_id(bid).message).replace('\t', '').replace('\n', '')
 
 def gen_table_html(cells, extra = { }):
     s = '<table width="440" border="0" cellpadding="0" cellspacing="0">'
@@ -297,17 +305,30 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
 	in_progress = (min(max([k.hp for k in p]), max([k.hp for k in e])) > 0)
 
 	if in_progress:
+	    msg = ''
 	    if u.is_player and action != "next":
 		if e[target].hp == 0:
 		    target = filter(lambda k: k[1].hp > 0, enumerate(e))
 		    target = target[0][0] if target else 0
 
-		quest_util.apply_spell(u, e[target], action)
+		msg += quest_util.apply_spell(u, e[target], action)
 
 	    elif not u.is_player and action == "next":
 		action = 'attack'
 		enemy_target = 0
-		quest_util.apply_spell(u, p[enemy_target], action)
+		msg += quest_util.apply_spell(u, p[enemy_target], action)
+	    
+	    apply_id = u.key().id()
+	    for b in quest_util.get_buffs(apply_id):
+		buff = quest_util.get_buff_by_id(b)
+		if 'turn' in buff_stats[buff.buffid]:
+		    msg += quest_util.buff_effect(b, 'turn', [u, None, 0])
+
+		buff.duration -= 1
+		if buff.duration == 0:
+		    buff.delete()
+		else:
+		    buff.put()
 
 	    if action == 'attack':
 		u.time_until_turn += u.spd
@@ -316,6 +337,10 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
 
 	    u.put()
 	    
+	    pqb = PoozleQuestBattle.get_by_id(bid)
+	    pqb.message = msg
+	    pqb.put()
+
 	    if u.is_player and e[target].hp == 0:
 		target = filter(lambda k: k[1].hp > 0, enumerate(e))
 		target = target[0][0] if target else 0

@@ -12,9 +12,18 @@ function setTarget(trg) {
         <td align="center" valign="top">
         <table border="0" cellpadding="5" cellspacing="0">
             <tr>
-                {% for e in enemy_units %}
+                {% for e, buffs in enemy_units %}
                 <td align="center" valign="top">
 		    <div id="e_{{loop.index0}}" class="br">
+		    <table border="0" cellpadding="0" cellspacing="0">
+		    <tr>
+		    {% for buff, buff_info in buffs %}
+		    <td>
+		    <img src="/resource/quest/buff/{{ buff.buffid }}.png" class="pa" title="{{ buff_info }} || {{ buff.duration }} turns left" />
+		    </td>
+		    {% endfor %}
+		    </tr><tr>
+		    <br>
 		    {% if e.hp > 0 %}
 		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
 		    {% endif %}
@@ -24,6 +33,7 @@ function setTarget(trg) {
 		    {% endif %}
 		    <img src="/resource/quest/target.png" id="trg{{loop.index0}}" class="pa" style="z-index: 8; visibility: hidden;" />
 		    </a>
+		    </tr></table>
 		    </div>
 		    <br>
                     {{e.name}}
@@ -64,20 +74,28 @@ function setTarget(trg) {
 	    </script>
 	    {% endif %}
         </td>
-        <td width="1" bgcolor="#909090"></td>
+        <td width="5"></td>
         <td valign="top">
-            spells<br>
-        </td>
-        <td width="1" bgcolor="#909090"></td>
-        <td valign="top">
-            items<br>
+            messages<br>
+	    {{ message|safe }}
         </td>
 </tr></table>
     </td>
     </tr>
     <tr>
-        <td height="1" bgcolor="#909090"></td>
+        <td height="10"></td>
+    </tr>
     <tr>
+	<td>
+	    {% for spell, spell_info in spells %}
+	    <img src="/resource/quest/spell_thumb.png" />
+	    <a id="btn_spell_{{spell.sid}}" href="javascript:;">{{spell_info.name}}</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_spell_{{spell.sid}}").addEventListener("click", function() { battle_action("{{spell.sid}}"); });
+	    </script>
+	    {% endfor %}
+	</td>
+    </tr>
     <tr>
         <td align="center" valign="bottom">
             <table border="0" cellpadding="0" cellspacing="0">
@@ -92,10 +110,20 @@ function setTarget(trg) {
         <td align="center" valign="top">
         <table border="0" cellpadding="5" cellspacing="0">
             <tr>
-                {% for p in player_units %}
+                {% for p, buffs in player_units %}
                 <td align="center" valign="top">
 		    <div id="p_{{loop.index0}}" class="br">
+		    <table border="0" cellpadding="0" cellspacing="0">
+		    <tr>
+		    {% for buff, buff_info in buffs %}
+		    <td>
+		    <img src="/resource/quest/buff/{{ buff.buffid }}.png" class="pa" title="{{ buff_info }} || {{ buff.duration }} turns left" />
+		    </td>
+		    {% endfor %}
+		    </tr><tr>
+		    <br>
                     <img src="/resource/quest/{{p.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    </tr></table>
 		    </div>
 		    <br>
                     {{p.name}}

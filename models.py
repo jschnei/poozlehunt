@@ -89,11 +89,15 @@ class PoozleQuestUnit(db.Model):
   maxmp = db.IntegerProperty(required=True)
 
   is_player = db.BooleanProperty(required=True, default=False)
+  level = db.IntegerProperty(required=True, default=1)
 
   time_until_turn = db.FloatProperty()
+  dmg_buffer = db.FloatProperty(default=0.) # for adding diff. sources of damage together
 
 class PoozleQuestBattle(db.Model):
   turn_uid = db.IntegerProperty()
+
+  message = db.StringProperty(default='The fight begins!')
 
 class PoozleQuestUnitBattle(db.Model):
   uid = db.IntegerProperty(required=True)
@@ -105,3 +109,21 @@ class PoozleQuestPCData(db.Model):
   uid = db.IntegerProperty(required=True)
 
   in_party = db.BooleanProperty(required=True, default=False)
+
+class PoozleQuestSpellData(db.Model):
+  uid = db.IntegerProperty(required=True)
+  sid = db.StringProperty(required=True)
+
+  level = db.IntegerProperty(required=True, default=1)
+
+class PoozleQuestBuffData(db.Model):
+  uid = db.IntegerProperty(required=True)
+  buffid = db.StringProperty(required=True)
+
+  info0 = db.IntegerProperty(default=0)
+  info1 = db.IntegerProperty(default=0)
+  info2 = db.IntegerProperty(default=0)
+  info3 = db.IntegerProperty(default=0)
+
+  stacks = db.IntegerProperty(required=True, default=1)
+  duration = db.IntegerProperty(required=True)
