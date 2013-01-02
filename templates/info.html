@@ -1,0 +1,46 @@
+<a href="/pquest">back to quest!</a><br><br>
+
+Stats:
+<br>
+{% for unit, equipped_items in units %}
+{% set iindex = loop.index0 %}
+{{ unit.name }}<br>
+level {{ unit.level }}<br>
+atk {{ unit.atk }}<br>
+pdef {{ unit.pdef }}<br>
+mag {{ unit.mag }}<br>
+mdef {{ unit.mdef }}<br>
+spd {{ unit.spd }}<br>
+mspd {{ unit.mspd }}<br>
+<br>
+hp {{ unit.hp }} / {{ unit.maxhp }}<br>
+mp {{ unit.mp }} / {{ unit.maxmp }}<br>
+
+equipped:
+{% for item in equipped_items %}
+{% set oindex = loop.index0 %}
+{{ item.name }} - <a id="unequip_{{oindex}}" href="javascript:;">(unequip)</a>
+<script type="text/javascript">
+document.getElementById("unequip_{{oindex}}").addEventListener("click", function() { action("unequip", {{oindex}}, {{iindex}}); });
+</script>
+{% endfor %}
+{% endfor %}
+<br><br>
+
+Inventory:
+<br>
+{% for item in items %}
+{% set oindex = loop.index0 %}
+{% if item.equip_id == 0 %}
+{{ item.name }}
+-- equip on 
+{% for unit in units %}
+{% set iindex = loop.index0 %}
+<a id="equip_{{oindex}}_{{iindex}}" href="javascript:;">unit.name</a>
+<script type="text/javascript">
+document.getElementById("equip_{{oindex}}_{{iindex}}").addEventListener("click", function() { action("equip", {{oindex}}, {{iindex}}); });
+</script>
+{% endfor %}
+{% endif %}
+{% endfor %}
+

@@ -73,6 +73,8 @@ class PoozleQuest(db.Model):
   in_transition = db.BooleanProperty(required=True, default=False)
   transition_text = db.StringProperty()
 
+  gold = db.IntegerProperty(required=True, default=0)
+
 class PoozleQuestUnit(db.Model):
   # represents a generic unit
   name = db.StringProperty(required=True)
@@ -127,3 +129,20 @@ class PoozleQuestBuffData(db.Model):
 
   stacks = db.IntegerProperty(required=True, default=1)
   duration = db.IntegerProperty(required=True)
+
+class PoozleQuestItem(db.Model):
+  qid = db.IntegerProperty(required=True)
+  equip_id = db.IntegerProperty(required=True, default=0) # items can be equipped to multiple uids
+
+  name = db.StringProperty()
+  tag = db.StringProperty()
+
+class PoozleQuestItemAttribute(db.Model):
+  itemid = db.IntegerProperty(required=True)
+  type = db.StringProperty(required=True)
+  subtype = db.StringProperty()
+
+  info0 = db.IntegerProperty()
+  info1 = db.IntegerProperty()
+  info2 = db.IntegerProperty()
+  info3 = db.IntegerProperty()

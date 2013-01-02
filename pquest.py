@@ -389,3 +389,64 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
                 self.battle_action(uid)
             else:
                 self.action(uid)
+
+class PoozleQuestInvHandler(webapp2.RequestHandler):
+    def render(self, units, items):
+	template = jinja_env.get_template('inventory_disp.html')
+	info_template = jinja_env.get_template('info.html')
+	info = info_template.render(units = units, items = items)
+
+	self.response.out.write(template.render(info = info))
+
+    def get(self):
+	uid = auth_util.auth_into_site(self)
+
+	if uid is None:
+	    self.redirect('/')
+
+	quest = quest_util.get_uqinfo(uid)
+
+	#if quest.in_battle:
+	if False:
+	    self.redirect('/pquest')
+	else:
+	    units = [i for i in quest_util.get_player_units(quest.key().id())]
+	    units = [(quest_util.get_unit_by_id(u), [PoozleQuestItem.get_by_id(k) for k in quest_util.get_equipped_items(u)]) for u in units]
+	    self.render(units = units,
+			items = [PoozleQuestItem.get_by_id(i) for i in quest_util.get_items(quest.key().id())])
+
+class PoozleQuestInvActionHandler(webapp2.RequestHandler):
+    def render(self, units, items):
+	template = jinja_env.get_template('inventory_disp.html')
+	info_template = jinja_env.get_template('info.html')
+
+	to_write = { }
+	to_write['info'] = info_template.render(units = units, items = items).replace('\t', '').replace('\n', '').replace('"', '\\"')
+
+	out_str = '{' + ','.join(['"' + k + '":"' + to_write[k] + '"' for k in to_write]) + '}'
+	self.response.write(out_str)
+	
+    def get(self):
+	self.redirect('/pquest/inventory')
+
+    def post(self):
+	uid = auth_util.auth_into_site(self)
+	if uid:
+	    qid = quest_util.get_uqinfo(uid).key().id()
+
+	    type = self.request.get('type')
+	    uid = int(self.request.get('uid'))
+	    itemid = int(self.request.get('itemid'))
+	    if type == 'equip':
+		uid = quest_util.get_player_units(qid)[uid]
+		itemid = quest_util.get_items(qid)[itemid]
+		quest_util.equip_item(uid, itemid)
+	    elif type == 'unequip':
+		uid = quest_util.get_player_units(qid)[uid]
+		itemid = quest_util.get_equipped_items(uid)[itemid]
+		quest_util.unequip_item(itemid)
+	    
+	    units = [i for i in quest_util.get_player_units(qid)]
+	    units = [(quest_util.get_unit_by_id(u), [PoozleQuestItem.get_by_id(k) for k in quest_util.get_equipped_items(u)]) for u in units]
+	    self.render(units = units,
+			items = [PoozleQuestItem.get_by_id(i) for i in quest_util.get_items(qid)])

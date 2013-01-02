@@ -74,6 +74,9 @@ def get_units_of_type(bid, player_units = True):
 
     return [u.uid for u in query if get_unit_by_id(u.uid).is_player == player_units]
 
+def get_player_units(qid):
+    return [q.uid for q in db.Query(PoozleQuestPCData).filter('qid =', qid).order('uid')]
+
 def add_player_units_to_battle(qid, bid):
     query = db.Query(PoozleQuestPCData)
     query.filter('qid =', qid)
@@ -222,7 +225,7 @@ def buff_information(uid, sid, buffid):
     if buffid == 'rend':
 	return [int(u.level / (5 - spell.level) / 3 + 1)]
     if buffid == 'charge':
-	return [-10 + 30 * spell.level]
+	return [30 * spell.level]
 
 def apply_buff(uid, tid, sid, buffid, duration):
     # applying buffid from uid -> tid with spell sid
@@ -313,3 +316,119 @@ def select_item_by_name(item):
 	    den -= n[0]
 
     return item
+
+# inventory-related item functions
+
+def get_items(qid):
+    query = db.Query(PoozleQuestItem)
+    query.filter('qid =', qid)
+    r = [q.key().id() for q in query]
+    r.sort()
+    return r
+
+def get_attributes(itemid):
+    query = db.Query(PoozleQuestItemAttribute)
+    query.filter('itemid =', itemid)
+    return [q.key().id() for q in query]
+
+def create_item_rough(qid, name, tag, attributes = []):
+    item = PoozleQuestItem(qid = qid, name = name, tag = tag)
+    item.put()
+    for a in attributes:
+	att = PoozleQuestItemAttribute(	itemid = item.key().id(),
+					type = a[0], subtype = a[1] if len(a) >= 2 else '',
+					info0 = a[2] if len(a) >= 3 else 0,
+					info1 = a[3] if len(a) >= 4 else 0,
+					info2 = a[4] if len(a) >= 5 else 0,
+					info3 = a[5] if len(a) >= 6 else 0 )
+	att.put()
+
+    return item.key().id()
+
+def unequip_item(i):
+    item = PoozleQuestItem.get_by_id(i)
+    uid = item.equip_id
+
+    for a in get_attributes(i):
+	deapply_attribute(uid, a)
+
+    item.equip_id = 0
+    item.put()
+
+def equip_item(uid, i):
+    item = PoozleQuestItem.get_by_id(i)
+    if item.equip_id != 0:
+	unequip_item(i)
+
+    item.equip_id = uid
+
+    for a in get_attributes(i):
+	apply_attribute(uid, a)
+
+    item.put()
+
+def get_equipped_items(uid):
+    query = db.Query(PoozleQuestItem)
+    query.filter('equip_id =', uid)
+    return [q.key().id() for q in query]
+
+def apply_attribute(uid, aid):
+    unit = get_unit_by_id(uid)
+    attr = PoozleQuestItemAttribute.get_by_id(aid)
+    type = attr.type
+
+    if type == 'atk':
+	unit.atk += attr.info0
+    elif type == 'pdef':
+	unit.pdef += attr.info0
+    elif type == 'mag':
+	unit.mag += attr.info0
+    elif type == 'mdef':
+	unit.mdef += attr.info0
+    elif type == 'spd':
+	unit.spd += attr.info0
+    elif type == 'mspd':
+	unit.mspd += attr.info0
+    elif type == 'hp':
+	unit.maxhp += attr.info0
+    elif type == 'mp':
+	unit.maxmp += attr.info0
+
+    unit.put()
+
+def deapply_attribute(uid, aid):
+    unit = get_unit_by_id(uid)
+    attr = PoozleQuestItemAttribute.get_by_id(aid)
+    type = attr.type
+
+    if type == 'atk':
+	unit.atk -= attr.info0
+    elif type == 'pdef':
+	unit.pdef -= attr.info0
+    elif type == 'mag':
+	unit.mag -= attr.info0
+    elif type == 'mdef':
+	unit.mdef -= attr.info0
+    elif type == 'spd':
+	unit.spd -= attr.info0
+    elif type == 'mspd':
+	unit.mspd -= attr.info0
+    elif type == 'hp':
+	unit.maxhp -= attr.info0
+    elif type == 'mp':
+	unit.maxmp -= attr.info0
+    
+    unit.put()
+
+########## item generation code
+
+def generate_item(qid, itemid, params = []):
+    basic_buffs = ['atk', 'pdef', 'mag', 'mdef', 'hp', 'mp']
+
+    item = PoozleQuestItem(qid = qid, name = itemid)
+    item.put()
+
+    if 'equip' not in item_info[id]:
+	return item.key().id()
+
+    att = PoozleQuestItemAttribute(itemid = item.key().id(),

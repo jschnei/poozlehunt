@@ -60,17 +60,29 @@ unit_stats['tiger'] = {'level':1, 'atk':13, 'pdef':6, 'mag':1, 'mdef':7, 'spd':3
 # loot information
 
 defeat_stats = { }
-defeat_stats['wolf'] = {'xp':9, 'gold':2, 'spoils': [[0.25, 'small']] }
-defeat_stats['tiger'] = {'xp':10, 'gold':2, 'spoils': [[0.25, 'small']] }
+defeat_stats['wolf'] = {'xp':9, 'gold':2, 'spoils': [[0.25, 'small'], [1.0, 'equip1']] }
+defeat_stats['tiger'] = {'xp':10, 'gold':2, 'spoils': [[0.25, 'small'], [1.0, 'equip1']] }
 
 spoil_groups = { }
 spoil_groups['small'] = [[0.5,'h_potion_s'], [0.5,'m_potion_s']]
+
+spoil_groups['equip1'] = [[0.5, 'weapon1'], [0.5, 'armor1']]
+spoil_groups['weapon1'] = [[0.7,'sword1'], [0.3,'bow1']]
+spoil_groups['armor1'] = [[0.5,'helm1'], [0.5,'bracer1']]
 
 # item information
 
 item_info = { }
 item_info['h_potion_s'] = {'name': 'Small Healing Potion', 'desc': 'Restores 15 health.', 'use_ooc': True, 'buffs': {'heal': 15} }
 item_info['m_potion_s'] = {'name': 'Small Mana Potion', 'desc': 'Restores 10 mana.', 'use_ooc': True, 'buffs': {'mheal': 10} }
+
+item_info['sword1'] = {'name': 'Worn Shortsword', 'desc': 'A flimsy wooden sword.', 'equip': 'weapon', 'level': 3}
+
+item_info['bow1'] = {'name': 'Shortbow', 'desc': 'A worn oak bow often used for training.', 'equip': 'weapon', 'level': 4}
+
+item_info['helm1'] = {'name': 'Leather Helm', 'desc': 'A helm made from scraps of leather.', 'equip': 'helm', 'level': 3}
+
+item_info['bracer1'] = {'name': 'Leather Bracers', 'desc': 'Bracers made from scraps of leather.', 'equip': 'arm', 'level': 3}
 
 # person information
 

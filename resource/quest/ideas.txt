@@ -11,3 +11,12 @@ warrior:
 19: frenzy (no mana mode)			/ +mdef
 22: +mana per hit				/ purifying strike (remove all buffs on hit)
 25: convert mana to HP				/ heroic strike (needs 5 successful hits + full mana)
+
+attributes for stuff:
++/- atk, pdef, mag, mdef, speed, mspd, maxhp, maxmp
+% chance to cast buff on target hit / self hit, etc.
+flat damage increase/decrease (even on self)
+silence on wearer/target/etc
+prevent heals on enemies/allies/etc
+make X spell better
++hp/mana on hit/on kill/on turn/etc
