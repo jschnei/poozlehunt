@@ -422,13 +422,13 @@ def deapply_attribute(uid, aid):
 
 ########## item generation code
 
-def generate_item(qid, itemid, params = []):
-    basic_buffs = ['atk', 'pdef', 'mag', 'mdef', 'hp', 'mp']
+#def generate_item(qid, itemid, params = []):
+#    basic_buffs = ['atk', 'pdef', 'mag', 'mdef', 'hp', 'mp']
 
-    item = PoozleQuestItem(qid = qid, name = itemid)
-    item.put()
+#    item = PoozleQuestItem(qid = qid, name = itemid)
+#    item.put()
 
-    if 'equip' not in item_info[id]:
-	return item.key().id()
+#    if 'equip' not in item_info[id]:
+#	return item.key().id()
 
-    att = PoozleQuestItemAttribute(itemid = item.key().id(),
+#    att = PoozleQuestItemAttribute(itemid = item.key().id(),
