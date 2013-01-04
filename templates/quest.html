@@ -3,17 +3,41 @@
 
 <script type="text/javascript" src="/resource/jquery.js"></script>
 <style type="text/css">
-    .pa{position:absolute;top:0px;left:0px;}.pr{position:relative;top:0px;left:0px;width:40px;height:40px;}.z0{position:absolute;top:0px;left:0px;z-index:0;}.z1{position:absolute;top:0px;left:0px;z-index:1;}
+    .pa{position:absolute;top:0px;left:0px;}.pr{position:relative;top:0px;left:0px;width:40px;height:40px;}.z0{position:absolute;top:0px;left:0px;z-index:0;}.z1{position:absolute;top:0px;left:0px;z-index:1;}.br{position:relative;top:0px;left:0px;width:130px;height:130px;}
 </style>
 
 <script language="javascript" type="text/javascript">
+    var battle_target = 0;
+    var manual = false;
     function updateDisplayPane(response) {
-        $("#display_pane").html(response);
+        r = $.parseJSON(response);
+        if (r.table != "") {
+            $("#display_pane").html(r.table);
+        }
+        if (r.nav != "") {
+            if (r.nav == "hide") {
+                $("#nav_pane").hide();
+            }
+            else {
+                $("#nav_pane").show();
+            }
+        }
+
+        $("#action_pane").html(r.action);
+        $("#result_pane").html(r.result);
     }
     function move(direction) {
         $.post('/pquest/move',
                 {direction: direction},
                 updateDisplayPane);
+    }
+    function action(target, type, subtype) {
+        $.post('/pquest/action',
+                {target: target, type: type, subtype: subtype},
+                updateDisplayPane);
+    }
+    function battle_action(type) {
+        action(battle_target, type, "");
     }
 </script>
 
@@ -27,6 +51,10 @@
     <area shape="poly" coords="6,113,6,80,11,80,39,108,39,113" href="javascript:;" alt="Southwest" onclick="move(6); return false;">
     <area shape="poly" coords="113,113,80,113,80,109,107,81,113,81" href="javascript:;" alt="Southeast" onclick="move(8); return false;">
 </map>
+
+<div id="result_pane">
+</div>
+
 <table>
     <tr>
         <td>
@@ -35,7 +63,12 @@
         </div>
         </td>
         <td valign="top">
+            <div id="nav_pane">
             <img src="resource/quest/nav.gif" width="120" height="120" usemap="#nav" border="0" />
+            </div>
+            <div id="action_pane">
+            {{ actions | safe }}
+            </div>
         </td>
 </tr></table>
 {% endblock %}

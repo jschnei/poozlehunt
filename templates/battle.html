@@ -1,0 +1,149 @@
+<script type="text/javascript">
+function setTarget(trg) {
+    $("#trg" + battle_target).css("visibility", "hidden");
+    $("#trg" + trg).css("visibility", "visible");
+
+    battle_target = trg;
+    manual = true;
+}
+</script>
+<table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center" valign="top">
+        <table border="0" cellpadding="5" cellspacing="0">
+            <tr>
+                {% for e, buffs in enemy_units %}
+                <td align="center" valign="top">
+		    <div id="e_{{loop.index0}}" class="br">
+		    <table border="0" cellpadding="0" cellspacing="0">
+		    <tr>
+		    {% for buff, buff_info in buffs %}
+		    <td>
+		    <img src="/resource/quest/buff/{{ buff.buffid }}.png" class="pa" title="{{ buff_info }} || {{ buff.duration }} turns left" />
+		    </td>
+		    {% endfor %}
+		    </tr><tr>
+		    <br>
+		    {% if e.hp > 0 %}
+		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+		    {% endif %}
+                    <img src="/resource/quest/enemy/{{e.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    {% if e.hp > 0 %}
+		    <a href="javascript:;" onclick="setTarget({{loop.index0}}); return false;">
+		    {% endif %}
+		    <img src="/resource/quest/target.png" id="trg{{loop.index0}}" class="pa" style="z-index: 8; visibility: hidden;" />
+		    </a>
+		    </tr></table>
+		    </div>
+		    <br>
+                    {{e.name}}
+                    <br>
+                    {{e.hp}} / {{e.maxhp}}
+		    <br>
+		    {% if e.hp > 0 %} next turn: {% if e.time_until_turn > 0.05 %} {{e.time_until_turn}} secs{% else %} now! {% endif %} {% endif %}
+		    </td> 
+                {% endfor %}
+            </tr>
+        </table>
+    </td>
+    </tr>
+    <tr>
+        <td height="1" bgcolor="#909090"></td>
+    </tr>
+    <tr><td>
+        <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+        <td>
+            current player<br>
+	    {% if move == "player" %}
+            <a id="btn_atk" href="javascript:;">attack!</a><br>
+            <a id="btn_flee" href="javascript:;">flee!</a><br>
+            <script type="text/javascript">
+                document.getElementById("btn_atk").addEventListener("click", function() { battle_action("attack"); });
+                document.getElementById("btn_flee").addEventListener("click", function() { battle_action("flee"); });
+            </script>
+	    {% elif move == "enemy" %}
+	    <a id="btn_next" href="javascript:;">next turn</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_next").addEventListener("click", function() { battle_action("next"); });
+	    </script>
+	    {% else %}
+	    <a id="btn_end" href="javascript:;">end fight</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_end").addEventListener("click", function() { battle_action("end"); });
+	    </script>
+	    {% endif %}
+        </td>
+        <td width="5"></td>
+        <td valign="top">
+            messages<br>
+	    {{ message|safe }}
+        </td>
+</tr></table>
+    </td>
+    </tr>
+    <tr>
+        <td height="10"></td>
+    </tr>
+    <tr>
+	<td>
+	    {% for spell, spell_info in spells %}
+	    <img src="/resource/quest/spell_thumb.png" />
+	    <a id="btn_spell_{{spell.sid}}" href="javascript:;">{{spell_info.name}}</a><br>
+	    <script type="text/javascript">
+		document.getElementById("btn_spell_{{spell.sid}}").addEventListener("click", function() { battle_action("{{spell.sid}}"); });
+	    </script>
+	    {% endfor %}
+	</td>
+    </tr>
+    <tr>
+        <td align="center" valign="bottom">
+            <table border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    {% for p in player_units %}
+                    <td>{{p.name}}</td>
+                    {% endfor %}
+                </tr>
+            </table>
+    </td></tr>
+    <tr>
+        <td align="center" valign="top">
+        <table border="0" cellpadding="5" cellspacing="0">
+            <tr>
+                {% for p, buffs in player_units %}
+                <td align="center" valign="top">
+		    <div id="p_{{loop.index0}}" class="br">
+		    <table border="0" cellpadding="0" cellspacing="0">
+		    <tr>
+		    {% for buff, buff_info in buffs %}
+		    <td>
+		    <img src="/resource/quest/buff/{{ buff.buffid }}.png" class="pa" title="{{ buff_info }} || {{ buff.duration }} turns left" />
+		    </td>
+		    {% endfor %}
+		    </tr><tr>
+		    <br>
+                    <img src="/resource/quest/{{p.name}}.png" class="pa" style="z-index: 0;" /></a>
+		    </tr></table>
+		    </div>
+		    <br>
+                    {{p.name}}
+                    <br>
+                    {{p.hp}} / {{p.maxhp}}
+		    <br>
+		    {% if p.hp > 0 %} next turn: {% if p.time_until_turn > 0.05 %} {{p.time_until_turn}} secs{% else %} now! {% endif %} {% endif %}
+		    </td> 
+                {% endfor %}
+            </tr>
+        </table>
+    </td>
+    </tr>
+</table>
+<script type="text/javascript">
+if ({{target}} != battle_target) {
+    battle_target = {{target}};
+    manual = false;
+}
+if (manual) {
+    setTarget(battle_target);
+}
+</script>

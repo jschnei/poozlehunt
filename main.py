@@ -583,8 +583,9 @@ app = webapp2.WSGIApplication([('/', MainHandler),
 			       ('/hunts/([a-zA-Z0-9]+)/puzzle_submit/submit', HuntPuzzleSubmitHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
+                ('/pquest/action', pquest.PoozleQuestActionHandler),
+		('/pquest/inventory', pquest.PoozleQuestInvHandler),
+		('/pquest/inventory/action', pquest.PoozleQuestInvActionHandler),
 				],
-
-
 
                               debug=True)

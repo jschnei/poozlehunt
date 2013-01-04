@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script type="text/javascript" src="/resource/jquery.js"></script>
+<script language="javascript" type="text/javascript">
+    function updateDisplayPane(response) {
+        r = $.parseJSON(response);
+        if (r.info != "") {
+            $("#info").html(r.info);
+        }
+    }
+    function action(type, uid, itemid) {
+        $.post('/pquest/inventory/action',
+                {type: type, uid: uid, itemid: itemid},
+                updateDisplayPane);
+    }
+</script>
+
+<div id="info">
+{{ info | safe }}
+</div>
+
+{% endblock %}
