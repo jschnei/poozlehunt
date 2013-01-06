@@ -367,6 +367,11 @@ def equip_item(uid, i):
 
     item.put()
 
+def str_item(i):
+    item = PoozleQuestItem.get_by_id(i)
+    
+    return name + ' - ' + ','.join([a.type + '-' + str(a.info0) for a in get_attributes(i)])
+
 def get_equipped_items(uid):
     query = db.Query(PoozleQuestItem)
     query.filter('equip_id =', uid)
@@ -422,13 +427,51 @@ def deapply_attribute(uid, aid):
 
 ########## item generation code
 
+def generate_point_value(lvl):
+    points = lvl/2
+    prob = 0.8
+    bstr = bin(lvl)[2:]
+    for k in range(len(bstr)):
+	t = len(bstr) - k
+	if random.random() < prob * (1.0 if bstr[k] == '1' else 0.5):
+	    prob -= 0.2
+	    points += (2 ** (t-1))
+	else:
+	    prob = 0.8
+
+    return points
+	
 def generate_item(qid, itemid, params = []):
     basic_buffs = ['atk', 'pdef', 'mag', 'mdef', 'hp', 'mp']
 
-    item = PoozleQuestItem(qid = qid, name = itemid)
+    item = PoozleQuestItem(qid = qid, name = item_info[itemid]['name'])
     item.put()
 
-    if 'equip' not in item_info[id]:
+    if 'equip' not in item_info[itemid]:
 	return item.key().id()
 
-    att = PoozleQuestItemAttribute(itemid = item.key().id(),
+    buff_select_list = basic_buffs + basic_buffs
+    buff_select_list += [item_info[itemid]['type']] * 5
+    allocation = collections.defaultdict(int)
+
+    ilvl = item_info[itemid]['ilvl']
+    points = generate_point_value(ilvl)
+    chunks = []
+    while points > 0:
+	add = 1 + int(random.random() * points)
+	chunks += [add]
+	points -= add
+
+    for num in chunks:
+	stat = buff_select_list[int(random.random() * len(buff_select_list))]	
+	allocation[stat] += num
+	if stat == 'hp':
+	    allocation[stat] += int(random.random() * num)
+
+    for stat in allocation:
+	att = PoozleQuestItemAttribute(itemid = item.key().id(),
+				       type = stat,
+				       info0 = allocation[stat])
+	att.put()
+
+    return item.key().id()

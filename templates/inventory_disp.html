@@ -9,7 +9,7 @@
             $("#info").html(r.info);
         }
     }
-    function action(type, uid, itemid) {
+    function action(type, itemid, uid) {
         $.post('/pquest/inventory/action',
                 {type: type, uid: uid, itemid: itemid},
                 updateDisplayPane);

@@ -20,3 +20,4 @@ silence on wearer/target/etc
 prevent heals on enemies/allies/etc
 make X spell better
 +hp/mana on hit/on kill/on turn/etc
++damage on hit with specific weapon type

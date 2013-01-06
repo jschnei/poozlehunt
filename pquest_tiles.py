@@ -34,7 +34,7 @@ spell_stats['rend'] = {'name':'Rend', 'desc':'Slashes an enemy, dealing normal d
 spell_stats['taunt'] = {'name':'Taunt', 'desc':'Taunts all enemies, encouraging them to attack you.'}
 spell_stats['charge'] = {'name':'Charge', 'desc':'Take this turn to charge an attack that will hit hard next turn.'}
 spell_stats['valor'] = {'name':'Valor', 'desc':'Temporarily increases the amount of healing and damage that you receive.'}
-spell_stats['frenzy'] = {'name':'Frenzy', 'desc':'Temporarily allows you to cast most spells without requiring mana.'}
+spell_stats['frenzy'] = {'name':'Frenzy', 'desc':'Temporarily allows you to cast most spells without using mana.'}
 spell_stats['purify'] = {'name':'Purifying Strike', 'desc':'Slashes an enemy and removes all buffs and debuffs applied to them.'}
 spell_stats['secondwind'] = {'name':'Second Wind', 'desc':'Converts half of your mana into one-third of your maximum life.'}
 spell_stats['heroic'] = {'name':'Heroic Strike', 'desc':'Strike at an enemy with all your fury.  Requires 5 successful hits during this battle and full mana.'}
@@ -76,13 +76,14 @@ item_info = { }
 item_info['h_potion_s'] = {'name': 'Small Healing Potion', 'desc': 'Restores 15 health.', 'use_ooc': True, 'buffs': {'heal': 15} }
 item_info['m_potion_s'] = {'name': 'Small Mana Potion', 'desc': 'Restores 10 mana.', 'use_ooc': True, 'buffs': {'mheal': 10} }
 
-item_info['sword1'] = {'name': 'Worn Shortsword', 'desc': 'A flimsy wooden sword.', 'equip': 'weapon', 'level': 3}
+item_info['sword1'] = {'name': 'Worn Shortsword', 'equip': 'weapon', 'type': 'atk', 'ilvl': 3}
+item_info['sword2'] = {'name': 'Sword', 'equip': 'weapon', 'type': 'atk', 'ilevel': 6, 'enchant': 'harm'}
 
-item_info['bow1'] = {'name': 'Shortbow', 'desc': 'A worn oak bow often used for training.', 'equip': 'weapon', 'level': 4}
+item_info['bow1'] = {'name': 'Shortbow', 'equip': 'weapon', 'type': 'atk', 'ilvl': 4}
 
-item_info['helm1'] = {'name': 'Leather Helm', 'desc': 'A helm made from scraps of leather.', 'equip': 'helm', 'level': 3}
+item_info['helm1'] = {'name': 'Leather Hat', 'equip': 'helm', 'type': 'pdef', 'ilvl': 4}
 
-item_info['bracer1'] = {'name': 'Leather Bracers', 'desc': 'Bracers made from scraps of leather.', 'equip': 'arm', 'level': 3}
+item_info['bracer1'] = {'name': 'Leather Bracers', 'equip': 'arm', 'type': 'pdef', 'ilvl': 3}
 
 # person information
 
