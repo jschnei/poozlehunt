@@ -275,18 +275,20 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
 
   def post(self):
     uid = auth_util.auth_into_site(self)
+    create_success = False
+
     if uid:
       title = self.request.get('title')
       scode = self.request.get('scode')
-      text = self.request.get('input')
       answer = self.request.get('answer')
 
-      if title != '' and text != '' and answer != '' and scode != '':
+      if title != '' and answer != '' and scode != '':
         if not puzzle_util.code_used(scode):
+          
           puzzle = Puzzle(title = title,
           short_code = scode,
           answer = answer,
-          text = text,
+          text = 'Insert puzzle text here',
           author = uid,
           approved = user_util.is_admin(uid))
 
@@ -298,7 +300,14 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
                                    solved = True)
           up_info.put()
 
-    self.redirect('/puzzles')
+          create_success = True
+          
+
+
+    if create_success: 
+      self.redirect('/puzzles/' + scode + '/edit')
+    else:
+      self.redirect('/puzzles')
  
 class PuzzleApproveHandler(webapp2.RequestHandler):
   def get(self, short_code):
