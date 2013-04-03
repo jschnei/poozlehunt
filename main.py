@@ -36,15 +36,6 @@ jinja_loader = jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), '
 jinja_env = jinja2.Environment(autoescape=True,
                                loader = jinja_loader)
 
-class PuzzleFileHandler(webapp2.RequestHandler):
-  def get(self, user, fname):
-    pfile = puzzle_util.get_puzzle_file(user, fname)
-    if pfile:
-      self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
-      self.response.out.write(pfile.pfile)
-    else:
-      self.response.out.write('error: could not load file')
-
 class MainHandler(webapp2.RequestHandler):
   def render(self):
     template = jinja_env.get_template('main.html')
@@ -247,28 +238,6 @@ class PuzzleSubmitPageHandler(webapp2.RequestHandler):
     uid = auth_util.auth_into_site(self)
     self.render()
 
-class PuzzleSubmitFileHandler(webapp2.RequestHandler):
-  # handler for file submission
-  def get(self):
-    self.redirect('/puzzle_submit')
-
-  def post(self):
-    uid = auth_util.auth_into_site(self)
-    if uid:
-      pfile = self.request.get('userfile')
-      fname = self.request.POST['userfile'].filename
-      mime_type = puzzle_util.get_mime_type(fname.split('.')[-1])
-
-      db_file = PuzzleFile(uid = uid,
-                           fname = fname,
-                           mime_type = mime_type, 
-                           pfile = db.Blob(pfile))
-
-      db_file.put()
-
-      template = jinja_env.get_template('img_upload.html')
-      self.response.out.write(template.render(uid = uid, fname = fname))
-
 class PuzzleSubmitHandler(webapp2.RequestHandler):
   def get(self):
     self.redirect('/puzzle_submit')
@@ -284,7 +253,6 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
 
       if title != '' and answer != '' and scode != '':
         if not puzzle_util.code_used(scode):
-          
           puzzle = Puzzle(title = title,
           short_code = scode,
           answer = answer,
@@ -344,11 +312,20 @@ class PuzzleEditHandler(webapp2.RequestHandler):
 
       self.render(user, puzzle, up_info)
     else:
-      self.redirect('/puzzles')
+      self.redirect('/ownpuzzles')
+
+class PuzzleFileHandler(webapp2.RequestHandler):
+  def get(self, short_code, fname):
+    pfile = puzzle_util.get_puzzle_file(short_code, fname)
+    if pfile:
+      self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
+      self.response.out.write(pfile.pfile)
+    else:
+      self.response.out.write('error: could not load file')
 
 class PuzzleEditSubmitHandler(webapp2.RequestHandler):
   def get(self, short_code):
-    self.redirect('/puzzles')
+    self.redirect('/ownpuzzles')
 
   def post(self, short_code):
     uid = auth_util.auth_into_site(self)
@@ -366,6 +343,29 @@ class PuzzleEditSubmitHandler(webapp2.RequestHandler):
 
         puzzle.put()
 
+
+    self.redirect('/ownpuzzles')
+
+class PuzzleEditUploadHandler(webapp2.RequestHandler):
+  # handler for file submission
+  def get(self, short_code):
+    self.redirect('/ownpuzzles')
+
+  def post(self, short_code):
+    uid = auth_util.auth_into_site(self)
+    if uid:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+      if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
+	
+	pfile = self.request.get('uploadfile')
+	fname = self.request.POST['uploadfile'].filename
+	mime_type = puzzle_util.get_mime_type(fname.split('.')[-1])
+
+	db_file = PuzzleFile(pid = puzzle.key().id(),
+			    fname = fname,
+			    mime_type = mime_type, 
+			    pfile = db.Blob(pfile))
+	db_file.put()
 
     self.redirect('/ownpuzzles')
 
@@ -579,14 +579,14 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzles', PuzzlesHandler),
                                ('/ownpuzzles', OwnPuzzlesHandler),
                                ('/puzzles/([a-zA-Z0-9]+)', PuzzleHandler),
-                               ('/files/([a-zA-Z0-9]+)/(.+)', PuzzleFileHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/files/(.*)', PuzzleFileHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/submit', PuzzleSubmitAnswerHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/approve', PuzzleApproveHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/edit', PuzzleEditHandler),
                                ('/puzzles/([a-zA-Z0-9]+)/edit_submit', PuzzleEditSubmitHandler),
+                               ('/puzzles/([a-zA-Z0-9]+)/edit_upload', PuzzleEditUploadHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
-                               ('/puzzle_submit/file_submit', PuzzleSubmitFileHandler),
                                ('/hunts', HuntsHandler),
                                ('/create_hunt', HuntCreateHandler),
                                ('/create_hunt/submit', HuntCreateSubmitHandler),

@@ -13,6 +13,13 @@
   <br>
   Answer: <input type="form" name="answer" value="{{puzzle.answer}}" />
   <br>
-  <input type="submit" value="Submit Puzzle" />
+  <input type="submit" value="Edit Puzzle" />
+  </form>
+  <hr/>
+  <form action="edit_upload" method="post" enctype="multipart/form-data">
+  Upload a file (i.e. image, audio, pdf, whatever) for this puzzle:
+  <input type="file" name="uploadfile" />
+  <br>
+  <input type="submit" value="Upload File" />
   </form>
 {% endblock %}

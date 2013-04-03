@@ -56,10 +56,13 @@ class PuzzleLockInfo(db.Model):
   ppid = db.IntegerProperty(required=True)
 
 class PuzzleFile(db.Model):
-  uid = db.IntegerProperty(required=True)
+  pid = db.IntegerProperty(required=True)
   fname = db.StringProperty(required=True)
   pfile = db.BlobProperty()
   mime_type = db.StringProperty()
+
+
+# poozle quest stuff
 
 class PoozleQuest(db.Model):
   uid = db.IntegerProperty(required=True)
