@@ -358,13 +358,16 @@ class PuzzleEditSubmitHandler(webapp2.RequestHandler):
 
       if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
         puzzle.title = self.request.get('title')
-        puzzle.text = self.request.get('input')
+        if self.request.get('uploadhtml'):
+	  puzzle.text = self.request.get('uploadhtml')
+        else:
+	  puzzle.text = self.request.get('input')
         puzzle.answer = self.request.get('answer')
 
         puzzle.put()
 
 
-    self.redirect('/puzzles')
+    self.redirect('/ownpuzzles')
 
 class HuntsHandler(webapp2.RequestHandler):
   def render(self, hunts, completion):
