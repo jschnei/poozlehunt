@@ -54,12 +54,24 @@ def approve_puzzle(uid, pid):
     puzzle.put()
 
 
-def get_puzzle_file(short_code, fname):
+def get_puzzle_file(pid, fname):
   query = db.Query(PuzzleFile)
-  query.filter('pid =', int(get_puzzle_by_code(short_code).key().id()))
+  query.filter('pid =', pid)
   query.filter('fname =', fname)
 
   return query.get()
+
+def get_puzzle_file_by_code(short_code, fname):
+  return get_puzzle_file(int(get_puzzle_by_code(short_code).key().id()), fname)
+
+def get_puzzle_files(pid):
+  query = db.Query(PuzzleFile)
+  query.filter('pid =', pid)
+  
+  return list(query)
+
+def get_puzzle_files_by_code(short_code):
+  return get_puzzle_files(int(get_puzzle_by_code(short_code).key().id()))
 
 mime_map = {'gif': 'image/gif', 
             'png': 'image/png', 

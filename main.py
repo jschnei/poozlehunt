@@ -290,10 +290,11 @@ class PuzzleApproveHandler(webapp2.RequestHandler):
     self.redirect('/puzzles/' + short_code)
 
 class PuzzleEditHandler(webapp2.RequestHandler):
-  def render(self, user, puzzle, up_info):
+  def render(self, user, puzzle, puzzle_files, up_info):
     template = jinja_env.get_template('puzzle_edit.html')
     self.response.out.write(template.render(user = user, 
                                             puzzle = puzzle, 
+                                            puzzle_files = puzzle_files,
                                             up_info = up_info,
                                             logged_in = True))
 
@@ -309,14 +310,14 @@ class PuzzleEditHandler(webapp2.RequestHandler):
 
     if user_util.user_can_edit_puzzle(uid, pid):
       up_info = puzzle_util.get_upinfo(uid, pid)
-
-      self.render(user, puzzle, up_info)
+      puzzle_files = puzzle_util.get_puzzle_files(pid)
+      self.render(user, puzzle, puzzle_files, up_info)
     else:
       self.redirect('/ownpuzzles')
 
 class PuzzleFileHandler(webapp2.RequestHandler):
   def get(self, short_code, fname):
-    pfile = puzzle_util.get_puzzle_file(short_code, fname)
+    pfile = puzzle_util.get_puzzle_file_by_code(short_code, fname)
     if pfile:
       self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
       self.response.out.write(pfile.pfile)

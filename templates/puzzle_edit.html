@@ -22,4 +22,12 @@
   <br>
   <input type="submit" value="Upload File" />
   </form>
+  List of files associated with this puzzle:
+  <ul>
+    {% for file in puzzle_files %}
+      <li>
+        <a href = 'files/{{file.fname}}'> {{ file.fname }}</a>
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}
