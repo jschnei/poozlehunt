@@ -2,11 +2,20 @@
 {% block title %} Create a Puzzle {% endblock %}
 {% block content %} 
   <form action="/puzzle_submit/submit" method="post" enctype="multipart/form-data">
-  Title: <input type="form" name="title" />
-  Short Code: <input type="form" name="scode" />
-  <br>
-  Answer: <input type="form" name="answer" />
-  <br>
+  <table>
+    <tr>
+      <td> Title </td>
+      <td> <input type="form" name="title" /> </td>
+    </tr>
+    <tr>  
+      <td> Short Code </td>
+      <td> <input type="form" name="scode" /> </td>
+    </tr>
+    <tr>
+      <td> Answer </td>
+      <td> <input type="form" name="answer" /> </td>
+    </tr>
+  </table>
   <input type="submit" value="Proceed to edit" />
   </form>
 {% endblock %}

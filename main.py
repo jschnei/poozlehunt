@@ -330,8 +330,12 @@ class PuzzleEditHandler(webapp2.RequestHandler):
                                             logged_in = True))
 
   def get(self, short_code):
-    puzzle = puzzle_util.get_puzzle_by_code(short_code)
     uid = auth_util.auth_into_site(self)
+    
+    puzzle = None
+    while not puzzle:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+    
     pid = puzzle.key().id()
     user = User.get_by_id(uid)
 
