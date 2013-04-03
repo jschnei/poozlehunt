@@ -353,8 +353,12 @@ class PoozleQuestActionHandler(webapp2.RequestHandler):
 	    to_write = { }
 	    if not quest.in_transition and not in_progress and action == 'end':
 		items = quest_util.select_items([n.name for n in e])
-		items = [(item_info[k[0]]['name'], k[1]) for k in items]
+		for item in items:
+		    for r in range(item[1]):
+			quest_util.generate_item(quest.key().id(), item[0])
+			print >> sys.stderr, str(item[0]) + '~~~'
 
+		items = [(item_info[k[0]]['name'], k[1]) for k in items]
 		template = jinja_env.get_template('battle_win.html')
 
 		quest.transition_text = template.render(xp = 14, gold = 10, items = items).replace('\t', '').replace('\n', '')
