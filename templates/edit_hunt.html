@@ -1,41 +1,7 @@
 {% extends "base.html" %}
 {% block title %} Edit a Hunt {% endblock %}
 {% block content %} 
-  <script type="text/javascript" src="/resource/jquery.js"></script>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      $("#plink").click(function() {
-		    $.post('/hunts/{{hunt.short_code}}/edit_add',
-			   {puzzle: document.getElementById("plink_name").value},
-			   refreshPuzzleListAdd); });
-
-      {% for puzzle in puzzles %}
-      $("#pd_remove_{{puzzle.short_code}}").click(function() { sendPuzzleRemove("{{puzzle.short_code}}"); });
-      {% endfor %}
-
-      function refreshPuzzleListAdd(response) {
-	var d = $.parseJSON(response);
-	//change me later
-	document.getElementById("puzzle_display").innerHTML +=
-	"<div id=\"pd_" + d.short_code + "\">" + d.title + " (" +
-	d.short_code + ") - <div id=\"pd_remove_" + d.short_code + "\">" +
-	"<a href='#'>(remove)</a></div></div>";
-
-	$("#pd_remove_" + d.short_code).click(function() { sendPuzzleRemove(d.short_code); });
-      }
-       function sendPuzzleRemove(d) {
-	$.post('/hunts/{{hunt.short_code}}/edit_remove',
-	{puzzle: d},
-	refreshPuzzleListRemove);
-      }
-   function refreshPuzzleListRemove(response) {
-	var d = $.parseJSON(response);
-	//change me later
-	$("#pd_" + d.short_code).unbind('click'); //garbage collection?
-	$("#pd_" + d.short_code).remove();
-      }
-  });
-  </script><br>
+  <br>
   <form action="edit_submit" method="post" enctype="multipart/form-data">
   Title: <input type="form" name="title" value="{{hunt.title}}"/>
   <br>
@@ -43,9 +9,7 @@
   </form>
   <div id="puzzle_display">
   {% for puzzle in puzzles %}
-  <div id="pd_{{ puzzle.short_code }}">{{puzzle.title}} ({{puzzle.short_code}}) - <div id="pd_remove_{{puzzle.short_code}}"><a href='#'>(remove)</a></div></div>
+  <div id="pd_{{ puzzle.short_code }}">{{puzzle.title}} ({{puzzle.short_code}})</div>
   {% endfor %}
   </div>
-  <input type="form" name="new_plink" id="plink_name"/>
-  <input type="submit" value="+" id="plink" />
 {% endblock %}

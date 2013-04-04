@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %} {{ hunt.title }} {% endblock %}
 {% block content %} 
-  {{ hunt.num_puzzles }} puzzles total
   <div id = 'puzzles'>
     <ul>
     {% for puzzle, status in puzzle_info %}
@@ -10,5 +9,4 @@
     </ul>
   </div>
   <br>
-  ...<a href="/hunts/{{hunt.short_code}}/puzzle_submit">add a puzzle</a>
 {% endblock %}

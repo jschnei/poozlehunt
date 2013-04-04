@@ -8,8 +8,8 @@
   </div>
   <div id = 'hunts'>
     <ul>
-    {% for hunt, status in puzzle_info %}
-      <li><a href = 'hunts/{{hunt.short_code}}'> {{ hunt.title }}</a>{% if status %} (solved!){% endif %} </li>
+    {% for hunt in hunts %}
+      <li><a href = 'hunts/{{hunt.short_code}}'> {{ hunt.title }}</a></li>
     {% endfor %}
     </ul>
   </div>
