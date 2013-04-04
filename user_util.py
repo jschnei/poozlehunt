@@ -6,8 +6,8 @@ from models import *
 # they result in making a lot of round trips to the database
 # which will slow things down with millions of users
 
-import sys
 import puzzle_util
+import hunt_util
 
 def is_admin(uid):
   user = User.get_by_id(uid)
@@ -33,4 +33,14 @@ def user_can_edit_puzzle(uid, pid):
   if puzzle.author == uid:
     return True
 
+  return False
+  
+def user_can_edit_hunt(uid, hid):
+  if is_admin(uid):
+    return True
+    
+  hunt = hunt_util.get_hunt_by_id(hid)
+  if hunt.author == uid:
+    return True
+    
   return False

@@ -393,10 +393,27 @@ class HuntsHandler(webapp2.RequestHandler):
 
   def get(self):
     uid = auth_util.auth_into_site(self)
-    hunts = hunt_util.get_hunts()
-    # no filters for hunts here yet
+    if uid:
+      hunts = [hunt for hunt in hunt_util.get_hunts() if hunt.author != uid]
+      self.render(hunts)
+    else:
+      self.redirect('/')
 
-    self.render(hunts)
+class OwnHuntsHandler(webapp2.RequestHandler):
+  def render(self, hunts):
+    template = jinja_env.get_template('ownhunts.html')
+
+    self.response.out.write(template.render(hunts = hunts, logged_in = True))
+
+  def get(self):
+    uid = auth_util.auth_into_site(self)
+    if uid:
+      hunts = hunt_util.get_hunts_by_user(uid)
+
+      self.render(hunts)
+    else:
+      self.redirect('/')
+
 
 class HuntHandler(webapp2.RequestHandler):
   def render(self, hunt, puzzles, completion):
@@ -464,21 +481,22 @@ class HuntEditHandler(webapp2.RequestHandler):
                                             logged_in = True))
 
   def get(self, short_code):
-    hunt = None
-    while not hunt:
-      hunt = hunt_util.get_hunt_by_code(short_code)
-      
-    
     uid = auth_util.auth_into_site(self)
-    hid = hunt.key().id()
-    user = User.get_by_id(uid)
+    if uid:
+      hunt = None
+      while not hunt:
+	hunt = hunt_util.get_hunt_by_code(short_code)
+	
+      hid = hunt.key().id()
+      user = User.get_by_id(uid)
 
-    puzzles = hunt_util.get_puzzles_of_hunt(hid)
-
-    if True: # todo: user_can_edit_hunt(uid, hid)
-      self.render(user, hunt, puzzles)
+      if user_util.user_can_edit_hunt(uid, hid): 
+	puzzles = hunt_util.get_puzzles_of_hunt(hid)
+	self.render(user, hunt, puzzles)
+      else:
+	self.redirect('/ownhunts')
     else:
-      self.redirect('/hunts')
+      self.redirect('/')
 
 class HuntEditSubmitHandler(webapp2.RequestHandler):
   def get(self, short_code):
@@ -488,16 +506,14 @@ class HuntEditSubmitHandler(webapp2.RequestHandler):
     uid = auth_util.auth_into_site(self)
 
     if uid:
-      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+      hunt = hunt_util.get_hunt_by_code(short_code)
 
-      if user_util.user_can_edit_puzzle(uid, puzzle.key().id()):
-        puzzle.title = self.request.get('title')
-        puzzle.text = self.request.get('input')
-        puzzle.answer = self.request.get('answer')
+      if user_util.user_can_edit_hunt(uid, hunt.key().id()):
+        hunt.title = self.request.get('title')
 
-        puzzle.put()
+        hunt.put()
 
-    self.redirect('/puzzles')
+    self.redirect('/ownhunts')
 
     
 
@@ -518,6 +534,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/puzzle_submit', PuzzleSubmitPageHandler),
                                ('/puzzle_submit/submit', PuzzleSubmitHandler),
                                ('/hunts', HuntsHandler),
+                               ('/ownhunts', OwnHuntsHandler),
                                ('/create_hunt', HuntCreateHandler),
                                ('/create_hunt/submit', HuntCreateSubmitHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
