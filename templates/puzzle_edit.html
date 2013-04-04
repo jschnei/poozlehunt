@@ -4,6 +4,8 @@
   <form action="edit_submit" method="post" enctype="multipart/form-data">
   Title: <input type="form" name="title" value="{{puzzle.title}}"/>
   <br>
+  Short Code: <em>{{puzzle.short_code}}</em>
+  </br>
   Enter your text/HTML below...<br>
   <div id="text"> 
       <textarea id="input" name="input" rows="15" cols="60" style="width: 80%">{{puzzle.text | safe}}</textarea>

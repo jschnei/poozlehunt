@@ -8,8 +8,15 @@
   <input type="submit" value="Submit Hunt" />
   </form>
   <div id="puzzle_display">
+  <p>
+  Puzzles/pages belonging to this hunt:
+  </p>
+  <ul>
   {% for puzzle in puzzles %}
-  <div id="pd_{{ puzzle.short_code }}">{{puzzle.title}} ({{puzzle.short_code}})</div>
+  <li>
+  <a href = 'puzzles/{{puzzle.short_code}}'>{{puzzle.title}} ({{puzzle.short_code}})</a>
+  </li>
   {% endfor %}
+  </ul>
   </div>
 {% endblock %}

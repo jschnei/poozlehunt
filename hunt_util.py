@@ -35,28 +35,9 @@ def is_user_author(uid, hid):
   hunt = get_hunt_by_id(hid)
   return (hunt.author == uid)
 
-def get_uhinfo(uid, hid, create_if_none=True):
-  query = db.Query(UserHuntInfo)
-  query.filter('uid =', uid)
+def get_puzzles_of_hunt(hid):
+  query = db.Query(Puzzle)
   query.filter('hid =', hid)
 
-  ret = query.get()
-  if create_if_none and not ret:
-    ret = UserHuntInfo(uid = uid,
-		       hid = hid,
-		       solved = False)
+  return list(query)
 
-  return ret
-
-def get_puzzles_of_hunt(hid):
-  query = db.Query(PuzzleHuntPuzzleInfo)
-  query.filter('hid =', hid)    
-
-  return [puzzle_util.get_puzzle_by_id(q.pid) for q in list(query)]
-
-def add_puzzle_to_hunt(pid, hid):
-  p = PuzzleHuntPuzzleInfo(hid, pid)
-  h = get_hunt_by_id(hid)
-  
-  p.put()
-  h.put()

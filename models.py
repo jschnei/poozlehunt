@@ -42,24 +42,12 @@ class PuzzleHunt(db.Model):
   short_code = db.StringProperty(required=True)
   author = db.IntegerProperty(required=True)
 
-class PuzzleHuntPuzzleInfo(db.Model):
-  # maps hunts to their individual puzzles
-  hid = db.IntegerProperty(required=True)
-  pid = db.IntegerProperty(required=True)
-
 class UserHuntInfo(db.Model):
   uid = db.IntegerProperty(required=True)
   hid = db.IntegerProperty(required=True)
 
   author = db.BooleanProperty(required=True, default=False)
   locked = db.BooleanProperty(required=True, default=False)
-
-class PuzzleLockInfo(db.Model):
-  # represents that you must solve puzzle <ppid> before puzzle <pid>
-
-  pid = db.IntegerProperty(required=True)
-  ppid = db.IntegerProperty(required=True)
-
 
 # poozle quest stuff
 

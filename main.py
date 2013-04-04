@@ -266,7 +266,7 @@ class PuzzleSubmitHandler(AuthHandler):
     hunt = int(self.request.get('hunt'))
 
     if title != '' and answer != '' and scode != '':
-      if hunt_util.is_user_author(uid, hunt) and not puzzle_util.code_used(scode):
+      if hunt_util.is_user_author(self.uid, hunt) and not puzzle_util.code_used(scode):
 	puzzle = Puzzle(title = title,
 	short_code = scode,
 	answer = answer,
@@ -316,7 +316,7 @@ class PuzzleEditHandler(AuthHandler):
       puzzle = puzzle_util.get_puzzle_by_code(short_code)
     
     pid = puzzle.key().id()
-    user = User.get_by_id(uid)
+    user = User.get_by_id(self.uid)
 
     if user_util.user_can_edit_puzzle(self.uid, pid):
       up_info = puzzle_util.get_upinfo(self.uid, pid)
@@ -480,7 +480,29 @@ class HuntEditSubmitHandler(AuthHandler):
 
     self.redirect('/ownhunts')
 
+class HuntPuzzleHandler(AuthHandler):
+  def render(self, user, puzzle, up_info):
+    template = jinja_env.get_template('puzzle.html')
+    self.response.out.write(template.render(user = user, 
+                                            puzzle = puzzle, 
+                                            up_info = up_info,
+                                            logged_in = True))
+
+  def aget(self, hunt_code, puzzle_code):
+    hunt = hunt_util.get_hunt_by_code(hunt_code)
+    puzzle = puzzle_util.get_puzzle_by_code(puzzle_code)
     
+    if hunt and puzzle and puzzle.hid == hunt.key().id():
+      hid = hunt.key().id()
+      pid = puzzle.key().id()
+      
+      user = User.get_by_id(self.uid)
+
+      up_info = puzzle_util.get_upinfo(self.uid, pid)
+
+      self.render(user, puzzle, up_info)
+    else:
+      self.redirect('/hunts')
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -505,6 +527,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)', HuntPuzzleHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
                 ('/pquest/action', pquest.PoozleQuestActionHandler),
