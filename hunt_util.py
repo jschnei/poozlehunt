@@ -41,3 +41,13 @@ def get_puzzles_of_hunt(hid):
 
   return list(query)
 
+def puzzle_in_hunt(puzzle, hunt):
+  if hunt and puzzle:
+    return puzzle.hid == hunt.key().id()
+  else:
+    return False
+    
+def puzzle_in_hunt_by_code(puzzle_code, hunt_code):
+  hunt = get_hunt_by_code(hunt_code)
+  puzzle = puzzle_util.get_puzzle_by_code(puzzle_code)
+  return puzzle_in_hunt(puzzle, hunt)

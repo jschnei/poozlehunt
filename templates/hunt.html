@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block title %} {{ hunt.title }} {% endblock %}
 {% block content %} 
+  <p>
+  There is no main page currently associated with this hunt. 
+  </p>
+  <p>
+  Here are all the pages associated with this hunt:
+  </p>
   <div id = 'puzzles'>
     <ul>
     {% for puzzle, status in puzzle_info %}
-      <li><a href = '/puzzles/{{puzzle.short_code}}'> {{ puzzle.title }}</a>{% if status %} (solved!){% endif %} </li>
+      <li><a href = '/puzzles/{{puzzle.short_code}}'> {{ puzzle.title }}</a></li>
     {% endfor %}
     </ul>
   </div>

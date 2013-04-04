@@ -359,7 +359,7 @@ class PuzzleEditSubmitHandler(AuthHandler):
 class PuzzleEditUploadHandler(AuthHandler):
   # handler for file submission
   def aget(self, short_code):
-    self.redirect('/ownpuzzles')
+    self.redirect('/ownpuzzles/' + short_code)
 
   def apost(self, short_code):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
@@ -375,7 +375,7 @@ class PuzzleEditUploadHandler(AuthHandler):
 			  pfile = db.Blob(pfile))
       db_file.put()
 
-    self.redirect('/ownpuzzles')
+    self.redirect('/ownpuzzles/' + short_code)
 
 class HuntsHandler(AuthHandler):
   def render(self, hunts):
@@ -494,7 +494,7 @@ class HuntPuzzleHandler(AuthHandler):
     hunt = hunt_util.get_hunt_by_code(hunt_code)
     puzzle = puzzle_util.get_puzzle_by_code(puzzle_code)
     
-    if hunt and puzzle and puzzle.hid == hunt.key().id():
+    if hunt_util.puzzle_in_hunt(puzzle, hunt):
       hid = hunt.key().id()
       pid = puzzle.key().id()
       
@@ -505,6 +505,19 @@ class HuntPuzzleHandler(AuthHandler):
       self.render(user, puzzle, up_info)
     else:
       self.redirect('/hunts')
+
+class HuntPuzzleFileHandler(AuthHandler):
+  def aget(self, hunt_code, puzzle_code, fname):
+    if hunt_util.puzzle_in_hunt_by_code(puzzle_code, hunt_code):
+      pfile = puzzle_util.get_puzzle_file_by_code(puzzle_code, fname)
+      if pfile:
+	self.response.headers['Content-Type'] = pfile.mime_type.encode('ascii', 'ignore')
+	self.response.out.write(pfile.pfile)
+      else:
+	self.response.out.write('error: could not load file')
+    else:
+      self.response.out.write('error: puzzle not in hunt')
+
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -530,6 +543,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)', HuntPuzzleHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/files/(.*)', HuntPuzzleFileHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
                 ('/pquest/action', pquest.PoozleQuestActionHandler),

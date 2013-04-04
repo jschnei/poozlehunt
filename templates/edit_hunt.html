@@ -15,6 +15,7 @@
   {% for puzzle in puzzles %}
   <li>
   <a href = 'puzzles/{{puzzle.short_code}}'>{{puzzle.title}} ({{puzzle.short_code}})</a>
+  <a href = '/puzzles/{{puzzle.short_code}}/edit'> [edit] </a>
   </li>
   {% endfor %}
   </ul>
