@@ -403,7 +403,9 @@ class HuntHandler(webapp2.RequestHandler):
     template = jinja_env.get_template('hunt.html')
 
     puzzle_info = zip(puzzles, completion)
-    self.response.out.write(template.render(hunt = hunt, puzzle_info = puzzle_info))
+    self.response.out.write(template.render(hunt = hunt, 
+					     puzzle_info = puzzle_info,
+					     logged_in = True))
 
   def get(self, short_code):
     uid = auth_util.auth_into_site(self)
@@ -420,13 +422,15 @@ class HuntCreateHandler(webapp2.RequestHandler):
   def render(self):
     template = jinja_env.get_template('create_hunt.html')
 
-    self.response.out.write(template.render())
+    self.response.out.write(template.render(logged_in = True))
 
   def get(self):
     uid = auth_util.auth_into_site(self)
     
     if uid:
       self.render()
+    else:
+      self.redirect('/')
 
 class HuntCreateSubmitHandler(webapp2.RequestHandler):
   # we should really refactor this stuff soon
@@ -438,8 +442,7 @@ class HuntCreateSubmitHandler(webapp2.RequestHandler):
     title = self.request.get('title')
     short_code = self.request.get('short_code')
 
-    if uid and title != '' and short_code != '':
-      #todo: add ajax check that short_code doesn't exist
+    if uid and title != '' and short_code != '' and not puzzle_util.code_used(scode):
       hunt = PuzzleHunt(title = title,
                         short_code = short_code,
                         author = uid)
@@ -520,8 +523,6 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
-			       ('/hunts/([a-zA-Z0-9]+)/edit_add', HuntEditAddPuzzleHandler),
-			       ('/hunts/([a-zA-Z0-9]+)/edit_remove', HuntEditRemovePuzzleHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
                 ('/pquest/action', pquest.PoozleQuestActionHandler),

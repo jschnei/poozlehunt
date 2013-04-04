@@ -22,6 +22,12 @@ def get_hunts_by_user(uid):
   
   return list(query)
 
+def code_used(short_code):
+  query = db.Query(PuzzleHunt)
+  query.filter('short_code =', short_code)
+  
+  return True if query.get() else False
+
 def is_user_author(uid, hid):
   if hid==-1: # general non-hunt puzzles
     return True
