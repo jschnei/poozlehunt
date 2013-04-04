@@ -35,6 +35,7 @@ def auth_into_site(handler):
       return None
 
     return uid
+  
   return None
 
 # methods for dealing with cookies

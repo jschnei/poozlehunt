@@ -15,6 +15,17 @@
       <td> Answer </td>
       <td> <input type="form" name="answer" /> </td>
     </tr>
+    <tr>
+      <td> Hunt </td>
+      <td> 
+	<select name="hunt">
+	  <option value="-1">No hunt</option>
+	  {% for hunt in hunts %}
+	  <option value="{{hunt.key().id()}}">{{hunt.title}} ({{hunt.short_code}})</option>
+	  {% endfor %}
+	</select>
+      </td>
+    </tr>
   </table>
   <input type="submit" value="Proceed to edit" />
   </form>

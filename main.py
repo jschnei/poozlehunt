@@ -162,14 +162,17 @@ class PuzzlesHandler(webapp2.RequestHandler):
 
   def get(self):
     uid = auth_util.auth_into_site(self)
-    puzzles = puzzle_util.get_puzzles()
+    if uid:
+      puzzles = puzzle_util.get_puzzles()
 
-    puzzle_filter = lambda k: (user_util.user_can_view_puzzle(uid, k.key().id()) and not k.author == uid)
-    puzzles = filter(puzzle_filter, puzzles)
+      puzzle_filter = lambda k: (user_util.user_can_view_puzzle(uid, k.key().id()) and not k.author == uid)
+      puzzles = filter(puzzle_filter, puzzles)
 
-    completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+      completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
 
-    self.render(puzzles, completion)
+      self.render(puzzles, completion)
+    else:
+      self.redirect('/')
 
 class OwnPuzzlesHandler(webapp2.RequestHandler):
   def render(self, puzzles, completion):
@@ -181,13 +184,17 @@ class OwnPuzzlesHandler(webapp2.RequestHandler):
 
   def get(self):
     uid = auth_util.auth_into_site(self)
-    puzzles = puzzle_util.get_puzzles()
+    
+    if uid:
+      puzzles = puzzle_util.get_puzzles()
 
-    puzzle_filter = lambda k: (k.author == uid)
-    puzzles = filter(puzzle_filter, puzzles)
+      puzzle_filter = lambda k: (k.author == uid)
+      puzzles = filter(puzzle_filter, puzzles)
 
-    completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
-    self.render(puzzles, completion)
+      completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
+      self.render(puzzles, completion)
+    else:
+      self.redirect('/')
 
 class PuzzleHandler(webapp2.RequestHandler):
   def render(self, user, puzzle, up_info):
@@ -198,14 +205,17 @@ class PuzzleHandler(webapp2.RequestHandler):
                                             logged_in = True))
 
   def get(self, short_code):
-    puzzle = puzzle_util.get_puzzle_by_code(short_code)
     uid = auth_util.auth_into_site(self)
-    pid = puzzle.key().id()
-    user = User.get_by_id(uid)
+    if uid:
+      puzzle = puzzle_util.get_puzzle_by_code(short_code)
+      pid = puzzle.key().id()
+      user = User.get_by_id(uid)
 
-    up_info = puzzle_util.get_upinfo(uid, pid)
+      up_info = puzzle_util.get_upinfo(uid, pid)
 
-    self.render(user, puzzle, up_info)
+      self.render(user, puzzle, up_info)
+    else:
+      self.redirect('/')
 
 class PuzzleSubmitAnswerHandler(webapp2.RequestHandler):
   # handler for submitted answers to puzzles
@@ -230,13 +240,16 @@ class PuzzleSubmitAnswerHandler(webapp2.RequestHandler):
 
 class PuzzleSubmitPageHandler(webapp2.RequestHandler):
   # handler for puzzle submission page
-  def render(self):
+  def render(self, hunts):
     template = jinja_env.get_template('puzzle_submit.html')
-    self.response.out.write(template.render(logged_in = 'True'))
+    self.response.out.write(template.render(logged_in = 'True', 
+					     hunts = hunts))
 
   def get(self):
     uid = auth_util.auth_into_site(self)
-    self.render()
+    if uid:
+      hunts = hunt_util.get_hunts_by_user(uid)
+      self.render(hunts)
 
 class PuzzleSubmitHandler(webapp2.RequestHandler):
   def get(self):
@@ -250,14 +263,16 @@ class PuzzleSubmitHandler(webapp2.RequestHandler):
       title = self.request.get('title')
       scode = self.request.get('scode')
       answer = self.request.get('answer')
+      hunt = int(self.request.get('hunt'))
 
       if title != '' and answer != '' and scode != '':
-        if not puzzle_util.code_used(scode):
+        if hunt_util.is_user_author(uid, hunt) and not puzzle_util.code_used(scode):
           puzzle = Puzzle(title = title,
           short_code = scode,
           answer = answer,
           text = 'Insert puzzle text here',
           author = uid,
+          hid = hunt,
           approved = user_util.is_admin(uid))
 
           puzzle.put()
@@ -430,7 +445,7 @@ class HuntCreateSubmitHandler(webapp2.RequestHandler):
       #todo: add ajax check that short_code doesn't exist
       hunt = PuzzleHunt(title = title,
                         short_code = short_code,
-                        num_puzzles = 0)
+                        author = uid)
 
       hunt.put()
 
@@ -445,11 +460,15 @@ class HuntEditHandler(webapp2.RequestHandler):
 
     self.response.out.write(template.render(user = user,
                                             hunt = hunt,
-					    puzzles = puzzles,
+					     puzzles = puzzles,
                                             logged_in = True))
 
   def get(self, short_code):
-    hunt = hunt_util.get_hunt_by_code(short_code)
+    hunt = None
+    while not hunt:
+      hunt = hunt_util.get_hunt_by_code(short_code)
+      
+    
     uid = auth_util.auth_into_site(self)
     hid = hunt.key().id()
     user = User.get_by_id(uid)

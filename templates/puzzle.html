@@ -1,14 +1,22 @@
 {% extends "base.html" %}
 {% block title %}  {{puzzle.title}}
-{% if up_info.solved %} (solved!) {% endif %}
 {% if up_info.author %}
   <a href = '/puzzles/{{ puzzle.short_code }}/edit'> [edit] </a>
+{% else %}
+{% if up_info.solved %} (solved!) {% endif %}
 {% endif %}
 {% endblock %}
 {% block content %} 
     <div id = 'text'>
       {{puzzle.text | safe}}
     </div>
+    {% if up_info.solved %} 
+    <div id = 'answer' style="color:#00CF00">
+    <p>
+    You have solved this puzzle. The answer is <em>{{ puzzle.answer }}</em>.
+    </p>
+    </div>
+    {% else %}
     <div id = 'answer'>
       <br>
       <form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">
@@ -21,4 +29,5 @@
         </form>
       {% endif %}
     </div>
+    {% endif %}
 {% endblock %}
