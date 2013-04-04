@@ -22,7 +22,8 @@ def code_used(short_code):
   
   return True if query.get() else False
 
-
+def puzzle_in_hunt(puzzle):
+  return (puzzle.hid != -1)
 
 def get_upinfo(uid, pid, create_if_none=True):
   query = db.Query(UserPuzzleInfo)

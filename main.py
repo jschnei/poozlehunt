@@ -179,7 +179,9 @@ class PuzzlesHandler(AuthHandler):
   def aget(self):
     puzzles = puzzle_util.get_puzzles()
 
-    puzzle_filter = lambda k: (user_util.user_can_view_puzzle(self.uid, k.key().id()) and not k.author == self.uid)
+    puzzle_filter = lambda k: (user_util.user_can_view_puzzle(self.uid, k.key().id()) and 
+				not puzzle_util.puzzle_in_hunt(k) and 
+				not k.author == self.uid)
     puzzles = filter(puzzle_filter, puzzles)
 
     completion = [puzzle_util.has_user_solved(uid, p.key().id()) for p in puzzles]
