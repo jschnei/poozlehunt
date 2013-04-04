@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} Your Hunts {% endblock %}
+{% block content %} 
+  <div id = 'message'>
+    <p>
+      Here are the hunts you have written.
+    </p>
+  </div>
+  <div id = 'hunts'>
+    <ul>
+    {% for hunt in hunts %}
+      <li>
+	<a href = 'hunts/{{hunt.short_code}}'> {{ hunt.title }}</a>
+	<a href = '/hunts/{{hunt.short_code }}/edit'> [edit] </a>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  <br>
+  ...or <a href="/create_hunt">create a new hunt</a>
+{% endblock %}
