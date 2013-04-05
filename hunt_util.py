@@ -28,6 +28,9 @@ def code_used(short_code):
   
   return True if query.get() else False
 
+def get_main_page(hunt):
+  return puzzle_util.get_puzzle_by_id(hunt.main_page)
+
 def is_user_author(uid, hid):
   if hid==-1: # general non-hunt puzzles
     return True

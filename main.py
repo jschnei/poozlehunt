@@ -410,11 +410,16 @@ class HuntHandler(AuthHandler):
 
   def aget(self, short_code):
     hunt = hunt_util.get_hunt_by_code(short_code)
-    puzzles = hunt_util.get_puzzles_of_hunt(hunt.key().id())
+    main_page = hunt_util.get_main_page(hunt)
+    
+    if main_page:
+      self.redirect('/hunts/' + hunt.short_code + '/puzzles/' + main_page.short_code)
+    else:
+      puzzles = hunt_util.get_puzzles_of_hunt(hunt.key().id())
 
-    completion = [puzzle_util.has_user_solved(self.uid, p.key().id()) for p in puzzles]
+      completion = [puzzle_util.has_user_solved(self.uid, p.key().id()) for p in puzzles]
 
-    self.render(hunt, puzzles, completion)
+      self.render(hunt, puzzles, completion)
 
 class HuntCreateHandler(AuthHandler):
   def render(self):
@@ -446,12 +451,13 @@ class HuntCreateSubmitHandler(AuthHandler):
       self.redirect('/create_hunt')
 
 class HuntEditHandler(AuthHandler):
-  def render(self, user, hunt, puzzles):
+  def render(self, user, hunt, puzzles, main_page):
     template = jinja_env.get_template('edit_hunt.html')
 
     self.response.out.write(template.render(user = user,
                                             hunt = hunt,
 					     puzzles = puzzles,
+					     main_page = main_page,
                                             logged_in = True))
 
   def aget(self, short_code):
@@ -464,9 +470,25 @@ class HuntEditHandler(AuthHandler):
 
     if user_util.user_can_edit_hunt(self.uid, hid): 
       puzzles = hunt_util.get_puzzles_of_hunt(hid)
-      self.render(user, hunt, puzzles)
+      main_page = hunt_util.get_main_page(hunt)
+      self.render(user, hunt, puzzles, main_page)
     else:
       self.redirect('/ownhunts')
+
+class HuntSetMainPageHandler(AuthHandler):
+  def aget(self, hunt_code, pid):
+    self.redirect('/hunts')
+
+  def apost(self, hunt_code, pid):
+    hunt = hunt_util.get_hunt_by_code(hunt_code)
+    puzzle = puzzle_util.get_puzzle_by_id(int(pid))
+
+    if (user_util.user_can_edit_hunt(self.uid, hunt.key().id()) and
+	hunt_util.puzzle_in_hunt(puzzle, hunt)):
+      hunt.main_page = int(pid)
+      hunt.put()
+
+    self.redirect('/hunts/' + hunt_code + '/edit')
 
 class HuntEditSubmitHandler(AuthHandler):
   def aget(self, short_code):
@@ -542,6 +564,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)', HuntHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit', HuntEditHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/set_mainpage/([a-zA-Z0-9]+)', HuntSetMainPageHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)', HuntPuzzleHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/files/(.*)', HuntPuzzleFileHandler),
                 ('/pquest', pquest.PoozleQuestHandler),

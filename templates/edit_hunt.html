@@ -9,6 +9,14 @@
   </form>
   <div id="puzzle_display">
   <p>
+  Current Main Page: 
+  {% if main_page %}
+  {{main_page.title}} ({{main_page.short_code}})
+  {% else %}
+  None
+  {% endif %}
+  </p>
+  <p>
   Puzzles/pages belonging to this hunt:
   </p>
   <ul>
@@ -16,6 +24,9 @@
   <li>
   <a href = 'puzzles/{{puzzle.short_code}}'>{{puzzle.title}} ({{puzzle.short_code}})</a>
   <a href = '/puzzles/{{puzzle.short_code}}/edit'> [edit] </a>
+  <form action="set_mainpage/{{puzzle.key().id()}}" method="post">
+    <input type="submit" value="Set as main page" />
+  </form>
   </li>
   {% endfor %}
   </ul>

@@ -41,6 +41,8 @@ class PuzzleHunt(db.Model):
   title = db.StringProperty(required=True)
   short_code = db.StringProperty(required=True)
   author = db.IntegerProperty(required=True)
+  
+  main_page = db.IntegerProperty(required=True, default = -1)
 
 class UserHuntInfo(db.Model):
   uid = db.IntegerProperty(required=True)
