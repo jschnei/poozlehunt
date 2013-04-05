@@ -359,7 +359,7 @@ class PuzzleEditSubmitHandler(AuthHandler):
 class PuzzleEditUploadHandler(AuthHandler):
   # handler for file submission
   def aget(self, short_code):
-    self.redirect('/ownpuzzles/' + short_code)
+    self.redirect('/puzzles/' + short_code)
 
   def apost(self, short_code):
     puzzle = puzzle_util.get_puzzle_by_code(short_code)
@@ -375,7 +375,7 @@ class PuzzleEditUploadHandler(AuthHandler):
 			  pfile = db.Blob(pfile))
       db_file.put()
 
-    self.redirect('/ownpuzzles/' + short_code)
+    self.redirect('/puzzles/' + short_code)
 
 class HuntsHandler(AuthHandler):
   def render(self, hunts):
@@ -439,7 +439,8 @@ class HuntCreateSubmitHandler(AuthHandler):
     title = self.request.get('title')
     short_code = self.request.get('short_code')
 
-    if self.uid and title != '' and short_code != '' and not puzzle_util.code_used(scode):
+    if (self.uid and title and short_code and 
+	not puzzle_util.code_used(short_code)):
       hunt = PuzzleHunt(title = title,
                         short_code = short_code,
                         author = self.uid)
