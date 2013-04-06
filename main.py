@@ -349,7 +349,13 @@ class PuzzleEditSubmitHandler(AuthHandler):
 	puzzle.text = self.request.get('uploadhtml')
       else:
 	puzzle.text = self.request.get('input')
-      puzzle.answer = self.request.get('answer')
+      
+      if self.request.get('ptype') == 'puzzle':
+	puzzle.is_puzzle = True
+	puzzle.answer = self.request.get('answer')
+      else:
+	puzzle.is_puzzle = False
+	puzzle.answer = 'notapuzzle'
 
       puzzle.put()
 
@@ -375,7 +381,7 @@ class PuzzleEditUploadHandler(AuthHandler):
 			  pfile = db.Blob(pfile))
       db_file.put()
 
-    self.redirect('/puzzles/' + short_code)
+    self.redirect('/puzzles/' + short_code + '/edit')
 
 class HuntsHandler(AuthHandler):
   def render(self, hunts):

@@ -10,7 +10,7 @@
     <div id = 'text'>
       {{puzzle.text | safe}}
     </div>
-    {% if up_info.solved %} 
+    {% if up_info.solved and puzzle.is_puzzle %} 
     <div id = 'answer' style="color:#00CF00">
     <p>
     You have solved this puzzle. The answer is <em>{{ puzzle.answer }}</em>.
@@ -23,11 +23,13 @@
       <input type="text" name="answer">
       <input type="submit" value="Submit">
       </form>
-      {% if user.is_admin == 1 and not puzzle.approved %}
-        <form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
-        <input type="submit" value="Approve">
-        </form>
-      {% endif %}
+    </div>
+    {% endif %}
+    {% if user.is_admin == 1 and not puzzle.approved %}
+    <div id = 'approve'>
+      <form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
+      <input type="submit" value="Approve">
+      </form>
     </div>
     {% endif %}
 {% endblock %}

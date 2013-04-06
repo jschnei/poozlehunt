@@ -16,10 +16,11 @@ class Puzzle(db.Model):
   text = db.TextProperty(required=True)
   author = db.IntegerProperty(required=True)
   approved = db.BooleanProperty(required=True, default=False)
+  is_puzzle = db.BooleanProperty(required=True, default=True)
 
   hid = db.IntegerProperty(required=True, default=-1)
 
-  is_puzzle = db.BooleanProperty(required=True, default=True)
+
   created = db.DateTimeProperty(auto_now_add = True)
   
 class UserPuzzleInfo(db.Model):

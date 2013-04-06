@@ -13,6 +13,10 @@
   or upload an HTML document: 
   <input type="file" name="uploadhtml" />
   <br>
+  Puzzle or Page?: 
+  Puzzle <input type="radio" name="ptype" value="puzzle" {% if puzzle.is_puzzle %} checked {% endif %}/> 
+  Page <input type="radio" name="ptype" value="page" {% if not puzzle.is_puzzle %} checked {% endif %}/>
+  <br>
   Answer: <input type="form" name="answer" value="{{puzzle.answer}}" />
   <br>
   <input type="submit" value="Edit Puzzle" />
