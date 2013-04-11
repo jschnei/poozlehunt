@@ -42,6 +42,9 @@ def has_user_solved(uid, pid):
   upinfo = get_upinfo(uid, pid)
   return upinfo.solved if upinfo else False
 
+def has_user_solved_by_code(uid, short_code):
+  return has_user_solved(uid, get_puzzle_by_code(short_code).key().id())
+
 def has_user_tried(uid, pid):
   upinfo = get_upinfo(uid, pid)
   return (upinfo.tries > 0) if upinfo else False

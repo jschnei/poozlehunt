@@ -8,7 +8,7 @@
 {% endblock %}
 {% block content %} 
     <div id = 'text'>
-      {{puzzle.text | safe}}
+      {{rend_text | safe}}
     </div>
     {% if up_info.solved and puzzle.is_puzzle %} 
     <div id = 'answer' style="color:#00CF00">
