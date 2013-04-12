@@ -1,25 +1,4 @@
 body {background-color:#444444;} 
-table{
-	border-width: 1px;
-	border-spacing: 2px;
-	border-style: none;
-	border-color: gray;
-	border-collapse: separate;
-}
-table th {
-	border-width: 1px;
-	padding: 1px;
-	border-style: solid;
-	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
-}
-table td {
-	border-width: 1px;
-	padding: 1px;
-	border-style: solid;
-	border-color: gray;
-	-moz-border-radius: 0px 0px 0px 0px;
-}
 
 #mainbox
 {
@@ -43,4 +22,10 @@ margin-left:auto;
 margin-right:auto;
 text-align:center;
 background-color:white;
+}
+
+
+#errors
+{
+  color: #f00
 }
