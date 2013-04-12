@@ -537,11 +537,12 @@ class HuntEditSubmitHandler(AuthHandler):
     self.redirect('/ownhunts')
 
 class HuntPuzzleHandler(AuthHandler):
-  def render(self, user, puzzle, up_info):
+  def render(self, user, puzzle, up_info, rend_text):
     template = jinja_env.get_template('puzzle.html')
     self.response.out.write(template.render(user = user, 
                                             puzzle = puzzle, 
                                             up_info = up_info,
+                                            rend_text = rend_text,
                                             logged_in = True))
 
   def aget(self, hunt_code, puzzle_code):
@@ -555,8 +556,54 @@ class HuntPuzzleHandler(AuthHandler):
       user = User.get_by_id(self.uid)
 
       up_info = puzzle_util.get_upinfo(self.uid, pid)
+      rend_text = render_util.render_page(self.uid, puzzle.text)
 
-      self.render(user, puzzle, up_info)
+      self.render(user, puzzle, up_info, rend_text)
+    else:
+      self.redirect('/hunts')
+
+class HuntPuzzleSubmitAnswerHandler(AuthHandler):
+  def render(self, user, puzzle, up_info, rend_text, errors = None):
+    template = jinja_env.get_template('puzzle.html')
+    self.response.out.write(template.render(user = user, 
+                                            puzzle = puzzle, 
+                                            up_info = up_info,
+                                            rend_text = rend_text,
+                                            errors = errors,
+                                            logged_in = True))
+  
+  # handler for submitted answers to puzzles
+  def aget(self, hunt_code, puzzle_code):
+    self.redirect('/hunts/' + hunt_code + '/puzzles/' + puzzle_code)
+
+  def apost(self, hunt_code, puzzle_code):
+    answer = self.request.get('answer')
+    
+    hunt = hunt_util.get_hunt_by_code(hunt_code)
+    puzzle = puzzle_util.get_puzzle_by_code(puzzle_code)
+    pid = puzzle.key().id()
+
+    up_info = puzzle_util.get_upinfo(self.uid, pid)
+    up_info.tries += 1
+    if hunt_util.puzzle_in_hunt(puzzle, hunt):
+      if puzzle.answer == answer:
+	up_info.solved = True
+	up_info.put()
+	
+	user = User.get_by_id(self.uid)
+	rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [puzzle_code])
+	
+	self.render(user, puzzle, up_info, rend_text)
+	
+      else:
+	up_info.put()
+	
+	user = User.get_by_id(self.uid)
+	rend_text = render_util.render_page(self.uid, puzzle.text)
+	
+	errors = ['That answer is incorrect']
+	
+	self.render(user, puzzle, up_info, rend_text, errors)
     else:
       self.redirect('/hunts')
 
@@ -598,6 +645,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)/edit_submit', HuntEditSubmitHandler),
                                ('/hunts/([a-zA-Z0-9]+)/set_mainpage/([a-zA-Z0-9]+)', HuntSetMainPageHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)', HuntPuzzleHandler),
+                               ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/submit', HuntPuzzleSubmitAnswerHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/files/(.*)', HuntPuzzleFileHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
