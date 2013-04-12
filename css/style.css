@@ -24,8 +24,30 @@ text-align:center;
 background-color:white;
 }
 
-
 #errors
 {
   color: #f00
+}
+
+table td.clueNum {
+text-align:right;
+vertical-align:top;
+padding-right:10px;
+}
+
+table td.clue {
+text-align:left;
+vertical-align:top;
+text-indent: -25px;
+padding-left: 25px;
+}
+
+table td.clueBlock {
+text-align:left;
+vertical-align:top;
+}
+
+table td p {
+margin: 0;
+padding: 0;
 }
