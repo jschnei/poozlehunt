@@ -248,7 +248,7 @@ class PuzzleSubmitAnswerHandler(AuthHandler):
     up_info = puzzle_util.get_upinfo(self.uid, pid)
     up_info.tries += 1
     
-    if puzzle.answer == answer:
+    if puzzle_util.check_answer(puzzle.answer, answer):
       up_info.solved = True
       up_info.put()
       
@@ -537,10 +537,11 @@ class HuntEditSubmitHandler(AuthHandler):
     self.redirect('/ownhunts')
 
 class HuntPuzzleHandler(AuthHandler):
-  def render(self, user, puzzle, up_info, rend_text):
+  def render(self, user, puzzle, hunt, up_info, rend_text):
     template = jinja_env.get_template('puzzle.html')
     self.response.out.write(template.render(user = user, 
                                             puzzle = puzzle, 
+                                            hunt = hunt,
                                             up_info = up_info,
                                             rend_text = rend_text,
                                             logged_in = True))
@@ -558,15 +559,16 @@ class HuntPuzzleHandler(AuthHandler):
       up_info = puzzle_util.get_upinfo(self.uid, pid)
       rend_text = render_util.render_page(self.uid, puzzle.text)
 
-      self.render(user, puzzle, up_info, rend_text)
+      self.render(user, puzzle, hunt, up_info, rend_text)
     else:
       self.redirect('/hunts')
 
 class HuntPuzzleSubmitAnswerHandler(AuthHandler):
-  def render(self, user, puzzle, up_info, rend_text, errors = None):
+  def render(self, user, puzzle, hunt, up_info, rend_text, errors = None):
     template = jinja_env.get_template('puzzle.html')
     self.response.out.write(template.render(user = user, 
                                             puzzle = puzzle, 
+                                            hunt = hunt,
                                             up_info = up_info,
                                             rend_text = rend_text,
                                             errors = errors,
@@ -586,14 +588,14 @@ class HuntPuzzleSubmitAnswerHandler(AuthHandler):
     up_info = puzzle_util.get_upinfo(self.uid, pid)
     up_info.tries += 1
     if hunt_util.puzzle_in_hunt(puzzle, hunt):
-      if puzzle.answer == answer:
+      if puzzle_util.check_answer(puzzle.answer, answer):
 	up_info.solved = True
 	up_info.put()
 	
 	user = User.get_by_id(self.uid)
 	rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [puzzle_code])
 	
-	self.render(user, puzzle, up_info, rend_text)
+	self.render(user, puzzle, hunt, up_info, rend_text)
 	
       else:
 	up_info.put()
@@ -603,7 +605,7 @@ class HuntPuzzleSubmitAnswerHandler(AuthHandler):
 	
 	errors = ['That answer is incorrect']
 	
-	self.render(user, puzzle, up_info, rend_text, errors)
+	self.render(user, puzzle, hunt, up_info, rend_text, errors)
     else:
       self.redirect('/hunts')
 
