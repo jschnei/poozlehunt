@@ -3,8 +3,9 @@ from google.appengine.ext import db
 
 class User(db.Model):
   name = db.StringProperty(required = True)
+  nickname = db.StringProperty(required = True)
   password = db.StringProperty(required = True)
-  email = db.StringProperty(required = True)
+  email = db.StringProperty(required = True, default='noemail')
   is_admin = db.IntegerProperty(required=True, default=0)
 
   created = db.DateTimeProperty(auto_now_add = True)

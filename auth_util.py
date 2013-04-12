@@ -62,6 +62,9 @@ def get_uid(cookie):
 
 # login/signup form validations
 
+def valid_teamname(teamname):
+  return len(teamname) > 0 and len(teamname) < 120
+
 def valid_username(username):
   return USER_RE.match(username)
 

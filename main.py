@@ -60,7 +60,8 @@ class MainHandler(webapp2.RequestHandler):
 
   def get(self):
     if auth_util.auth_into_site(self) :
-      self.redirect('/puzzles')
+      self.redirect('/hunts/ppp/puzzles/main')
+      # self.redirect('/puzzles')
     else:
       self.render()
 
@@ -131,31 +132,37 @@ class RegisterHandler(webapp2.RequestHandler):
     if auth_util.auth_into_site(self):
       self.redirect('/puzzles')
     else:      
+      teamname = self.request.get('teamname')
       username = self.request.get('username')
       password = self.request.get('password')
       verify = self.request.get('verify')
-      email = self.request.get('email')
+      
 
       errors = []
+      if not auth_util.valid_teamname(teamname):
+	errors.append("That's not a valid team name")
       if not auth_util.valid_username(username):
         errors.append("That's not a valid username")
       if not auth_util.valid_password(password):
         errors.append("That's not a valid password")
       if not auth_util.valid_verify(verify, password):
         errors.append("Your passwords do not match")
-      if not auth_util.valid_email(email):
-        errors.append("That's not a valid e-mail")
-
+      
       
       # check if username is already taken
       query = db.Query(User)
       query.filter('name =', username)
       if query.get():
         errors.append("That user name is already taken")
+        
+      query = db.Query(User)
+      query.filter('nickname =', teamname)
+      if query.get():
+        errors.append("That team name is already taken")
 
 
       if not errors:
-        u = User(name = username, password = password, email = email)
+        u = User(name = username, nickname = teamname, password = password)
         u.put()
         uid = u.key().id()
         auth = auth_util.gen_cookie(uid)
