@@ -53,6 +53,12 @@ class UserHuntInfo(db.Model):
   author = db.BooleanProperty(required=True, default=False)
   locked = db.BooleanProperty(required=True, default=False)
 
+# specific puzzle bindings
+
+class AdventurePlayer(db.Model):
+  hashid = db.StringProperty(required=True)
+  player_info = db.TextProperty(default='')
+
 # poozle quest stuff
 
 class PoozleQuest(db.Model):

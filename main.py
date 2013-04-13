@@ -22,6 +22,7 @@ import os
 import sys
 import webapp2
 import random
+import string
 
 import auth_util
 import hunt_util
@@ -30,6 +31,11 @@ import render_util
 import user_util
 
 import pquest
+
+import adventure
+import adventure_util
+import interactions
+import items
 
 from models import *
 
@@ -628,6 +634,36 @@ class HuntPuzzleFileHandler(AuthHandler):
     else:
       self.response.out.write('error: puzzle not in hunt')
 
+class AdventureHandler(AuthHandler):
+  def aget(self):
+    template = jinja_env.get_template('adventure.html')
+    self.response.out.write(template.render(logged_in = False))
+
+class AdventureRealTimeHandler(AuthHandler):
+  def apost(self):
+    cookie = self.request.cookies.get('id', '')
+    s = ''
+    p = None
+
+    if cookie == '':
+        rgen = ''.join(random.choice(string.letters) for i in xrange(32))
+        self.response.headers.add_header('Set-Cookie', 'id = %s; Path = /' % rgen)
+
+        p = AdventurePlayer(hashid = rgen, player_info = '')
+    else:
+        query = db.Query(AdventurePlayer)
+        query.filter('hashid =', cookie)
+        p = query.get()
+        if p:
+            s = str(p.player_info)
+
+    content = self.request.get('content')
+
+    out_str, new_player = adventure.receive(content, s)
+
+    p.player_info = new_player
+    p.put()
+    self.response.out.write(out_str)
 
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
@@ -661,6 +697,9 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                 ('/pquest/action', pquest.PoozleQuestActionHandler),
 		('/pquest/inventory', pquest.PoozleQuestInvHandler),
 		('/pquest/inventory/action', pquest.PoozleQuestInvActionHandler),
+
+         ('/adventure', AdventureHandler),
+         ('/adventure/send', AdventureRealTimeHandler),
 				],
 
                               debug=True)
