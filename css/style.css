@@ -1,0 +1,53 @@
+body {background-color:#444444;} 
+
+#mainbox
+{
+width:770px;
+padding:25px;
+border:5px solid gray;
+margin:10px;
+margin-left:auto; 
+margin-right:auto;
+text-align:justify;
+background-color:white;
+}
+
+#headerbox
+{
+width:770px;
+padding:25px;
+border:5px solid gray;
+margin:10px;
+margin-left:auto; 
+margin-right:auto;
+text-align:center;
+background-color:white;
+}
+
+#errors
+{
+  color: #f00
+}
+
+table td.clueNum {
+text-align:right;
+vertical-align:top;
+padding-right:10px;
+}
+
+table td.clue {
+text-align:left;
+vertical-align:top;
+text-indent: -25px;
+padding-left: 25px;
+}
+
+table td.clueBlock {
+text-align:left;
+vertical-align:top;
+}
+
+table td p {
+margin: 0;
+padding: 0;
+}

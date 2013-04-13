@@ -8,28 +8,35 @@
 {% endblock %}
 {% block content %} 
     <div id = 'text'>
-      {{puzzle.text | safe}}
+      {{rend_text | safe}}
     </div>
-    {% if up_info.solved and puzzle.is_puzzle %} 
-    <div id = 'answer' style="color:#00CF00">
-    <p>
-    You have solved this puzzle. The answer is <em>{{ puzzle.answer }}</em>.
-    </p>
-    </div>
-    {% else %}
-    <div id = 'answer'>
-      <br>
-      <form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">
-      <input type="text" name="answer">
-      <input type="submit" value="Submit">
-      </form>
-    </div>
-    {% endif %}
-    {% if user.is_admin == 1 and not puzzle.approved %}
-    <div id = 'approve'>
-      <form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
-      <input type="submit" value="Approve">
-      </form>
-    </div>
+    {% if puzzle.is_puzzle %}
+      <hr/>
+      {% if up_info.solved %} 
+      <div id = 'answer' style="color:#00CF00">
+      <p>
+      You have solved this puzzle. The answer is <em>{{ puzzle.answer }}</em>.
+      </p>
+      </div>
+      {% else %}
+      <div id = 'answer'>
+	<br>
+	{% if hunt %}
+	<form action="/hunts/{{ hunt.short_code }}/puzzles/{{ puzzle.short_code }}/submit" method="post">
+	{% else %}
+	<form action="/puzzles/{{ puzzle.short_code }}/submit" method="post">
+	{% endif %}
+	Answer: <input type="text" name="answer">
+	<input type="submit" value="Submit">
+	</form>
+      </div>
+      {% endif %}
+      {% if user.is_admin == 1 and not puzzle.approved %}
+      <div id = 'approve'>
+	<form action="/puzzles/{{ puzzle.short_code }}/approve" method="post">
+	<input type="submit" value="Approve">
+	</form>
+      </div>
+      {% endif %}
     {% endif %}
 {% endblock %}

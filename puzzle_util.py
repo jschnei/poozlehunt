@@ -2,6 +2,8 @@
 
 from models import *
 
+import string
+
 import user_util
 
 def get_puzzles():
@@ -42,6 +44,9 @@ def has_user_solved(uid, pid):
   upinfo = get_upinfo(uid, pid)
   return upinfo.solved if upinfo else False
 
+def has_user_solved_by_code(uid, short_code):
+  return has_user_solved(uid, get_puzzle_by_code(short_code).key().id())
+
 def has_user_tried(uid, pid):
   upinfo = get_upinfo(uid, pid)
   return (upinfo.tries > 0) if upinfo else False
@@ -81,3 +86,8 @@ mime_map = {'gif': 'image/gif',
 
 def get_mime_type(ext):
   return mime_map[ext] if ext in mime_map else 'text/plain'
+
+def check_answer(ans1, ans2):
+  def filter_answer(ans):
+    return filter(str.isalnum, str(ans)).lower()
+  return filter_answer(ans1) == filter_answer(ans2)
