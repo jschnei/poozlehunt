@@ -26,6 +26,9 @@ def code_used(short_code):
 def puzzle_in_hunt(puzzle):
   return (puzzle.hid != -1)
 
+def get_upinfos():
+  return list(db.Query(UserPuzzleInfo))
+
 def get_upinfo(uid, pid, create_if_none=True):
   query = db.Query(UserPuzzleInfo)
   query.filter('uid =', uid)

@@ -9,6 +9,9 @@ from models import *
 import puzzle_util
 import hunt_util
 
+def get_users():
+  return list(db.Query(User))
+
 def is_admin(uid):
   user = User.get_by_id(uid)
   if user and user.is_admin:
@@ -44,3 +47,4 @@ def user_can_edit_hunt(uid, hid):
     return True
     
   return False
+  

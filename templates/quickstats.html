@@ -1,0 +1,18 @@
+{% for pcode in solves.keys() %}
+<div>
+<p><b>{{pcode}}</b></p>
+<table>
+{% for solve in solves[pcode] %}
+  <tr>
+    <td>
+    {{ solve[0] }}
+    </td>
+    <td>
+    {{ solve[1] }}
+    </td>
+  </tr>
+{% endfor %}
+</table>
+</div>
+{% endfor %}
+

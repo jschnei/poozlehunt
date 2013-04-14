@@ -686,6 +686,29 @@ class AdventureRealTimeHandler(AuthHandler):
     p.put()
     self.response.out.write(out_str)
 
+class QuickStatsHandler(AuthHandler):
+  def render(self, solves, errors = None):
+    template = jinja_env.get_template('quickstats.html')
+    self.response.out.write(template.render(solves = solves,
+                                            errors = errors,
+                                            logged_in = True))
+  
+  def aget(self):
+    upinfos = puzzle_util.get_upinfos()
+    puzzles = puzzle_util.get_puzzles()
+    users = user_util.get_users()
+    
+    pidmap = {puzzle.key().id():puzzle.short_code for puzzle in puzzles}
+    uidmap = {user.key().id():user.nickname for user in users}
+    
+    solves = {puzzle.short_code:set() for puzzle in puzzles}
+    for upinfo in upinfos:
+      if upinfo.solved:
+	solves[pidmap[upinfo.pid]].add((uidmap[upinfo.uid],upinfo.last_submit))
+
+    self.render(solves)
+    
+
 app = webapp2.WSGIApplication([('/', MainHandler),
                                ('(.*)/', TrailingHandler),
                                ('/login', LoginHandler),
@@ -713,6 +736,7 @@ app = webapp2.WSGIApplication([('/', MainHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)', HuntPuzzleHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/submit', HuntPuzzleSubmitAnswerHandler),
                                ('/hunts/([a-zA-Z0-9]+)/puzzles/([a-zA-Z0-9]+)/files/(.*)', HuntPuzzleFileHandler),
+                               ('/quickstats', QuickStatsHandler),
                 ('/pquest', pquest.PoozleQuestHandler),
                 ('/pquest/move', pquest.PoozleQuestMoveHandler),
                 ('/pquest/action', pquest.PoozleQuestActionHandler),
