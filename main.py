@@ -259,26 +259,37 @@ class PuzzleSubmitAnswerHandler(AuthHandler):
     pid = puzzle.key().id()
 
     up_info = puzzle_util.get_upinfo(self.uid, pid)
-    up_info.tries += 1
     
-    if puzzle_util.check_answer(puzzle.answer, answer):
-      up_info.solved = True
-      up_info.put()
-      
-      user = User.get_by_id(self.uid)
-      rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [short_code])
-      
-      self.render(user, puzzle, up_info, rend_text)
-      
-    else:
-      up_info.put()
+    if up_info.tries > 20:
+      errors = ['You have submitted too many answers to this problem, so submission is locked. \
+      Contact hunt organizers to unlock your account.']
       
       user = User.get_by_id(self.uid)
       rend_text = render_util.render_page(self.uid, puzzle.text)
       
-      errors = ['That answer is incorrect']
-      
       self.render(user, puzzle, up_info, rend_text, errors)
+    else:
+	
+      up_info.tries += 1
+      
+      if puzzle_util.check_answer(puzzle.answer, answer):
+	up_info.solved = True
+	up_info.put()
+	
+	user = User.get_by_id(self.uid)
+	rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [short_code])
+	
+	self.render(user, puzzle, up_info, rend_text)
+	
+      else:
+	up_info.put()
+	
+	user = User.get_by_id(self.uid)
+	rend_text = render_util.render_page(self.uid, puzzle.text)
+	
+	errors = ['That answer is incorrect']
+	
+	self.render(user, puzzle, up_info, rend_text, errors)
       
 
 class PuzzleSubmitPageHandler(AuthHandler):
@@ -601,24 +612,34 @@ class HuntPuzzleSubmitAnswerHandler(AuthHandler):
     up_info = puzzle_util.get_upinfo(self.uid, pid)
     up_info.tries += 1
     if hunt_util.puzzle_in_hunt(puzzle, hunt):
-      if puzzle_util.check_answer(puzzle.answer, answer):
-	up_info.solved = True
-	up_info.put()
-	
-	user = User.get_by_id(self.uid)
-	rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [puzzle_code])
-	
-	self.render(user, puzzle, hunt, up_info, rend_text)
-	
-      else:
-	up_info.put()
+      if up_info.tries > 20:
+	errors = ['You have submitted too many answers to this problem, so submission is locked. \
+	Contact hunt organizers to unlock your account.']
 	
 	user = User.get_by_id(self.uid)
 	rend_text = render_util.render_page(self.uid, puzzle.text)
 	
-	errors = ['That answer is incorrect']
-	
-	self.render(user, puzzle, hunt, up_info, rend_text, errors)
+	self.render(user, puzzle, up_info, rend_text, errors)
+      else:
+      
+	if puzzle_util.check_answer(puzzle.answer, answer):
+	  up_info.solved = True
+	  up_info.put()
+	  
+	  user = User.get_by_id(self.uid)
+	  rend_text = render_util.render_page(self.uid, puzzle.text, fcodes = [puzzle_code])
+	  
+	  self.render(user, puzzle, hunt, up_info, rend_text)
+	  
+	else:
+	  up_info.put()
+	  
+	  user = User.get_by_id(self.uid)
+	  rend_text = render_util.render_page(self.uid, puzzle.text)
+	  
+	  errors = ['That answer is incorrect']
+	  
+	  self.render(user, puzzle, hunt, up_info, rend_text, errors)
     else:
       self.redirect('/hunts')
 

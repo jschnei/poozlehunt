@@ -32,6 +32,8 @@ class UserPuzzleInfo(db.Model):
   locked = db.BooleanProperty(required=True, default=False)
   solved = db.BooleanProperty(required=True, default=False)
   tries = db.IntegerProperty(required=True, default=0)
+  
+  last_submit = db.DateTimeProperty(auto_now = True)
 
 class PuzzleFile(db.Model):
   pid = db.IntegerProperty(required=True)
