@@ -701,10 +701,10 @@ class QuickStatsHandler(AuthHandler):
     pidmap = {puzzle.key().id():puzzle.short_code for puzzle in puzzles}
     uidmap = {user.key().id():user.nickname for user in users}
     
-    solves = {puzzle.short_code:set() for puzzle in puzzles}
+    solves = {user.nickname:set() for user in users}
     for upinfo in upinfos:
       if upinfo.solved:
-	solves[pidmap[upinfo.pid]].add((uidmap[upinfo.uid],upinfo.last_submit))
+	solves[uidmap[upinfo.uid]].add((pidmap[upinfo.pid],upinfo.last_submit))
 
     self.render(solves)
     
