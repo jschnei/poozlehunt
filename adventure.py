@@ -18,7 +18,7 @@ def receive(text, player):
     return res, player_pickle(p1)
 
 def process(command, p1):
-    if 'maria' in command and p1.count_given == 14 and p1.current_room == 'fe':
+    if 'maria' in command and 'grod' in p1.milestones and p1.current_room == 'fe':
         return 'Well done, adventurer! Your answer is HEXAMETERS! I hope you had fun on your journey.'
 
     if command[0] == 'climb' and ((p1.current_room == 'c' and p1.current_season != 'summer') or (p1.current_room == 'snow' and 'grope' in p1.milestones)):
@@ -227,7 +227,7 @@ def process(command, p1):
             if isinstance(a, BasicResponseAction) and command[1] in a.names and command[0] in a.d:
                 return a.d[command[0]](p1)
 
-    if p1.current_room == 'fe' and p1.count_given == 14:
+    if p1.current_room == 'fe' and 'grod' in p1.milestones:
         return '"That\'s not my name," says the woman.'
     
     return 'I\'m sorry, I don\'t understand...'
